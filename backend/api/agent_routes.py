@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from security.auth0_client import get_current_user
 from executor.task_executor import TaskExecutor
 from agents.planner_agent import create_plan
+from registry.tool_registry import tool_registry
 
 from fastapi.responses import StreamingResponse
 import json
@@ -81,3 +82,11 @@ async def run_agent_task_stream(
         stream_execution(plan, task_executor, user),
         media_type="application/json"
     )
+
+
+@router.get("/tools")
+def list_tools():
+
+    return {
+        "available_tools": tool_registry.list_tools()
+    }
