@@ -1,3 +1,4 @@
+from registry.tool_registry import tool_registry
 import requests
 
 
@@ -28,3 +29,6 @@ def create_calendar_event(user_context, params):
     response = requests.post(url, headers=headers, json=event)
 
     return response.json()
+
+
+tool_registry.register("create_calendar_event", create_calendar_event)

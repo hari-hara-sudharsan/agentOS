@@ -1,3 +1,4 @@
+from registry.tool_registry import tool_registry
 import requests
 
 
@@ -26,3 +27,6 @@ def send_slack_message(user_context, params):
     response = requests.post(url, headers=headers, json=payload)
 
     return response.json()
+
+
+tool_registry.register("send_slack_message", send_slack_message)

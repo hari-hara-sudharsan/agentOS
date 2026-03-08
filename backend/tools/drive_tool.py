@@ -1,3 +1,4 @@
+from registry.tool_registry import tool_registry
 import requests
 
 
@@ -26,3 +27,6 @@ def upload_to_drive(user_context, params):
     response = requests.post(url, headers=headers, files=files)
 
     return response.json()
+
+
+tool_registry.register("upload_to_drive", upload_to_drive)

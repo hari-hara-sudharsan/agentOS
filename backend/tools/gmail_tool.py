@@ -1,3 +1,4 @@
+from registry.tool_registry import tool_registry
 import requests
 
 
@@ -20,3 +21,6 @@ def read_gmail(user_context, params):
         return {"error": "gmail api failed"}
 
     return response.json()
+
+
+tool_registry.register("read_gmail", read_gmail)
