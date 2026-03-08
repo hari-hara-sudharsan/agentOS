@@ -1,13 +1,11 @@
 from registry.tool_registry import tool_registry
+
 import requests
 
 
 def send_slack_message(user_context, params):
 
     token = user_context.get("slack_token")
-
-    if not token:
-        return {"error": "slack not connected"}
 
     channel = params.get("channel", "#general")
     message = params.get("message", "AgentOS message")
