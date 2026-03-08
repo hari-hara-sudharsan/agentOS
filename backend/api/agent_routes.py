@@ -18,6 +18,55 @@ class TaskRequest(BaseModel):
     message: str
 
 
+async def stream_execution(plan, executor, user):
+
+    tasks = plan.get("tasks", [])
+
+    yield json.dumps({
+        "event": "plan_created",
+        "goal": plan.get("goal")
+    }) + "\n"
+
+    for task in tasks:
+
+        tool = task["tool"]
+
+        yield json.dumps({
+            "event": "step_started",
+            "tool": tool
+        }) + "\n"
+
+        try:
+
+            result = executor.router.execute_tool(
+                task,
+                user,
+                executor.memory
+            )
+
+            executor.memory.store(tool, result)
+
+            yield json.dumps({
+                "event": "step_completed",
+                "tool": tool,
+                "result": result
+            }) + "\n"
+
+        except Exception as e:
+
+            yield json.dumps({
+                "event": "step_failed",
+                "tool": tool,
+                "error": str(e)
+            }) + "\n"
+
+        await asyncio.sleep(0.2)
+
+    yield json.dumps({
+        "event": "execution_finished"
+    }) + "\n"
+
+
 @router.post("/run-task")
 async def run_agent_task(
     request: TaskRequest,
@@ -28,13 +77,7 @@ async def run_agent_task(
 
     plan = create_plan(user_message)
 
-    async def stream_results():
-        
-        yield json.dumps({"status": "plan_created", "plan": plan}) + "\n"
-        await asyncio.sleep(0.1)
-
-        result = task_executor.execute_plan(plan, user)
-
-        yield json.dumps({"status": "execution_complete", "result": result}) + "\n"
-
-    return StreamingResponse(stream_results(), media_type="application/x-ndjson")
+    return StreamingResponse(
+        stream_execution(plan, task_executor, user),
+        media_type="application/x-ndjson"
+    )
