@@ -1,11 +1,46 @@
-import React from "react";
+"use client"
+
+import { useState } from "react"
+import MessageInput from "./MessageInput"
+import StepList from "./StepList"
 
 export default function ChatBox() {
-    return (
-        <div className="w-full max-w-3xl flex-1 bg-gray-800 rounded-t-lg shadow-lg mt-4 flex flex-col p-4 border border-gray-700">
-            <div className="flex-1 overflow-y-auto mb-4">
-                <p className="text-gray-400 text-center mt-10">No messages yet. Start a conversation!</p>
-            </div>
-        </div>
-    );
+
+  const [steps, setSteps] = useState<any[]>([])
+  const [goal, setGoal] = useState("")
+
+  function addStep(step:any) {
+    setSteps(prev => [...prev, step])
+  }
+
+  function updateStep(tool:string,status:string) {
+
+    setSteps(prev =>
+      prev.map(s =>
+        s.tool === tool ? {...s,status} : s
+      )
+    )
+  }
+
+  return (
+    <div className="w-full max-w-2xl mt-10">
+
+      <div className="bg-gray-800 p-6 rounded-lg">
+
+        <h2 className="text-lg mb-4">
+          {goal}
+        </h2>
+
+        <StepList steps={steps} />
+
+        <MessageInput
+          addStep={addStep}
+          updateStep={updateStep}
+          setGoal={setGoal}
+        />
+
+      </div>
+
+    </div>
+  )
 }

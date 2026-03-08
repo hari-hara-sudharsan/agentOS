@@ -1,0 +1,77 @@
+"use client"
+
+import { useState } from "react"
+
+export default function MessageInput({ addStep, updateStep, setGoal }: any) {
+
+    const [message, setMessage] = useState("")
+
+    async function sendMessage() {
+
+        const response = await fetch(
+            "http://localhost:8000/api/agent/run-task-stream",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message })
+            }
+        )
+
+        const reader = response.body?.getReader()
+        const decoder = new TextDecoder()
+
+        while (true) {
+
+            const { done, value } = await reader!.read()
+
+            if (done) break
+
+            const chunk = decoder.decode(value)
+
+            const events = chunk
+                .split("\n")
+                .filter(Boolean)
+                .map(str => JSON.parse(str))
+
+            events.forEach((event: any) => {
+
+                if (event.event === "plan_created")
+                    setGoal(event.goal)
+
+                if (event.event === "step_started")
+                    addStep({ tool: event.tool, status: "running" })
+
+                if (event.event === "step_completed")
+                    updateStep(event.tool, "completed")
+
+            })
+
+        }
+
+    }
+
+    return (
+
+        <div className="flex gap-2">
+
+            <input
+                className="flex-1 p-2 text-black rounded"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask AgentOS..."
+            />
+
+            <button
+                onClick={sendMessage}
+                className="bg-blue-500 px-4 rounded"
+            >
+                Send
+            </button>
+
+        </div>
+
+    )
+
+}
