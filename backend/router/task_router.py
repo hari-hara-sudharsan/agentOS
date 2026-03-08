@@ -2,6 +2,7 @@ from agents.api_agent import APIAgent
 from agents.browser_agent import BrowserAgent
 from agents.planner_agent import create_plan
 from database.activity_logger import log_activity
+from memory.execution_memory import ExecutionMemory
 
 
 class TaskRouter:
@@ -10,6 +11,7 @@ class TaskRouter:
 
         self.api_agent = APIAgent()
         self.browser_agent = BrowserAgent()
+        self.memory = ExecutionMemory()
 
     def execute(self, user_message, user_context):
 
