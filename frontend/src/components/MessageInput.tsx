@@ -46,7 +46,7 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
             events.forEach((event: any) => {
 
                 if (event.event === "plan_created")
-                    setGoal(event.goal)
+                    setGoal(`Planner created goal: ${event.goal}`)
 
                 if (event.event === "step_started")
                     addStep({ tool: event.tool, status: "running" })
