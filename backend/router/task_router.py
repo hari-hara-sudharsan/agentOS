@@ -37,6 +37,8 @@ class TaskRouter:
 
                     result = self.api_agent.execute(task, user_context)
 
+                self.memory.store(tool, result)
+
                 log_activity(
                     user_context["sub"],
                     tool,
