@@ -5,7 +5,7 @@ from tools.drive_tool import upload_to_drive
 
 class APIAgent:
 
-    def execute(self, task, user_context):
+    def execute(self, task, user_context, memory=None):
 
         tool = task["tool"]
         params = task.get("parameters", {})
