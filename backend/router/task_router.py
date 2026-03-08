@@ -1,6 +1,7 @@
 from agents.api_agent import APIAgent
 from agents.browser_agent import BrowserAgent
 from agents.planner_agent import create_plan
+from database.activity_logger import log_activity
 
 
 class TaskRouter:
@@ -34,6 +35,12 @@ class TaskRouter:
 
                     result = self.api_agent.execute(task, user_context)
 
+                log_activity(
+                    user_context["sub"],
+                    tool,
+                    "success"
+                )
+
                 results.append({
                     "tool": tool,
                     "status": "success",
@@ -41,6 +48,12 @@ class TaskRouter:
                 })
 
             except Exception as e:
+
+                log_activity(
+                    user_context["sub"],
+                    tool,
+                    "failed"
+                )
 
                 results.append({
                     "tool": tool,
