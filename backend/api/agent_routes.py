@@ -67,8 +67,8 @@ async def stream_execution(plan, executor, user):
     }) + "\n"
 
 
-@router.post("/run-task")
-async def run_agent_task(
+@router.post("/run-task-stream")
+async def run_agent_task_stream(
     request: TaskRequest,
     user=Depends(get_current_user)
 ):
@@ -79,5 +79,5 @@ async def run_agent_task(
 
     return StreamingResponse(
         stream_execution(plan, task_executor, user),
-        media_type="application/x-ndjson"
+        media_type="application/json"
     )
