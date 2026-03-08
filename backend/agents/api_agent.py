@@ -1,23 +1,16 @@
-from tools.gmail_tool import read_gmail
-from tools.slack_tool import send_slack_message
-from tools.drive_tool import upload_to_drive
+from registry.tool_registry import tool_registry
 
 
 class APIAgent:
 
     def execute(self, task, user_context, memory=None):
 
-        tool = task["tool"]
+        tool_name = task["tool"]
         params = task.get("parameters", {})
 
-        if tool == "read_gmail":
-            return read_gmail(user_context, params)
+        tool = tool_registry.get(tool_name)
 
-        elif tool == "send_slack_message":
-            return send_slack_message(user_context, params)
+        if not tool:
+            return {"error": "tool not found"}
 
-        elif tool == "upload_to_drive":
-            return upload_to_drive(user_context, params)
-
-        else:
-            return {"error": "Unknown API tool"}
+        return tool(user_context, params)
