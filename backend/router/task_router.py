@@ -31,11 +31,11 @@ class TaskRouter:
 
                 if tool.startswith("browser_"):
 
-                    result = self.browser_agent.execute(task)
+                    result = self.browser_agent.execute(task, self.memory)
 
                 else:
 
-                    result = self.api_agent.execute(task, user_context)
+                    result = self.api_agent.execute(task, user_context, self.memory)
 
                 self.memory.store(tool, result)
 
