@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from security.auth0_client import get_current_user
-from router.task_router import TaskRouter
+from executor.task_executor import TaskExecutor
+from agents.planner_agent import create_plan
 
 router = APIRouter()
 
-task_router = TaskRouter()
+task_executor = TaskExecutor()
 
 
 class TaskRequest(BaseModel):
@@ -21,6 +22,8 @@ def run_agent_task(
 
     user_message = request.message
 
-    result = task_router.execute(user_message, user)
+    plan = create_plan(user_message)
+
+    result = task_executor.execute_plan(plan, user)
 
     return result
