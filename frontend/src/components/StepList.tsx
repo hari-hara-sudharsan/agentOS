@@ -1,19 +1,24 @@
 "use client"
 
 import { useState } from "react"
+import { useAuth0 } from "@auth0/auth0-react"
 
 export default function MessageInput({ addStep, updateStep, setGoal }: any) {
 
     const [message, setMessage] = useState("")
+    const { getAccessTokenSilently } = useAuth0()
 
     async function sendMessage() {
+
+        const token = await getAccessTokenSilently()
 
         const response = await fetch(
             "http://localhost:8000/api/agent/run-task-stream",
             {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({ message })
             }
