@@ -33,6 +33,7 @@ export default function ChatBox() {
                 addStep={addStep}
                 updateStep={updateStep}
                 setGoal={setGoal}
+                setSteps={setSteps}
             />
 
         </div>
