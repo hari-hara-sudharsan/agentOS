@@ -20,12 +20,19 @@ class TaskExecutor:
             tool = task["tool"]
 
             try:
+                MAX_RETRIES = 2
 
-                result = self.router.execute_tool(
-                    task,
-                    user_context,
-                    self.memory
-                )
+                for attempt in range(MAX_RETRIES):
+                    try:
+                        result = self.router.execute_tool(
+                            task,
+                            user_context,
+                            self.memory
+                        )
+                        break
+                    except Exception as e:
+                        if attempt == MAX_RETRIES - 1:
+                            raise e
 
                 self.memory.store(tool, result)
 

@@ -1,5 +1,5 @@
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
 import json
 from config import config
 
@@ -48,7 +48,7 @@ def create_plan(user_message):
         HumanMessage(content=user_message)
     ]
 
-    response = llm(messages)
+    response = llm.invoke(messages)
 
     try:
         plan = json.loads(response.content)
