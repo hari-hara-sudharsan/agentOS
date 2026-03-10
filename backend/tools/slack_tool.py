@@ -1,11 +1,16 @@
 from registry.tool_registry import tool_registry
-
+from integrations.token_vault import get_service_token
 import requests
 
 
 def send_slack_message(user_context, params, memory=None):
 
-    token = user_context.get("slack_token")
+    user_id = user_context["sub"]
+
+    token = get_service_token(
+        "https://slack.com/api",
+        user_id
+    )
 
     channel = params.get("channel", "#general")
     message = params.get("message")
