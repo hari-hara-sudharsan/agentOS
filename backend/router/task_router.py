@@ -1,5 +1,6 @@
 from agents.api_agent import APIAgent
 from agents.browser_agent import BrowserAgent
+from utils.logger import logger
 
 
 class TaskRouter:
@@ -12,6 +13,7 @@ class TaskRouter:
     def execute_tool(self, task, user_context, memory):
 
         tool = task["tool"]
+        logger.info(f"Executing tool: {tool}")
 
         if tool.startswith("browser_"):
 
