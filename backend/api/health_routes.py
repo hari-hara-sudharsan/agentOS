@@ -15,3 +15,15 @@ def health():
         "service": "AgentOS",
         "uptime_seconds": round(uptime)
     }
+
+@router.get("/ready")
+def readiness():
+
+    return {
+        "status": "ready",
+        "agents": [
+            "planner_agent",
+            "api_agent",
+            "browser_agent"
+        ]
+    }
