@@ -18,7 +18,7 @@ Rules:
 2. Use only available tools.
 3. If information must be retrieved first, add a retrieval step.
 4. Ensure output is valid JSON.
-5. Each task must contain step, tool, description.
+5. Each task must contain step, tool, description, and optionally input/output references to pass data.
 
 Available tools:
 - read_gmail
@@ -38,6 +38,8 @@ Return format:
    {
      "step":1,
      "tool":"tool_name",
+     "input":"optional_input_from_memory",
+     "output":"optional_memory_key_to_save",
      "description":"task explanation"
    }
  ]

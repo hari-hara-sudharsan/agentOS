@@ -45,7 +45,8 @@ class TaskExecutor:
                         if retries > MAX_RETRIES:
                             raise e
 
-                self.memory.store(tool, result)
+                output_key = task.get("output", tool)
+                self.memory.store(output_key, result)
 
                 results.append({
                     "tool": tool,
