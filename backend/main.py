@@ -8,8 +8,11 @@ from utils.error_handler import global_exception_handler
 
 from database.db import engine
 from database.models import Base
+from utils.rate_limiter import limiter
 
 app = FastAPI(title="AgentOS Backend")
+
+app.state.limiter = limiter
 
 origins = [
     "http://localhost:3000"
@@ -27,6 +30,10 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(api_router, prefix="/api")
 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_exception_handler(Exception, global_exception_handler)
 
 

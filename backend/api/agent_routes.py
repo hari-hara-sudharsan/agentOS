@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
+from utils.rate_limiter import limiter
 
 from security.auth0_client import get_current_user
 from executor.task_executor import TaskExecutor
@@ -69,12 +70,14 @@ async def stream_execution(plan, executor, user):
 
 
 @router.post("/run-task-stream")
+@limiter.limit("10/minute")
 async def run_agent_task_stream(
-    request: TaskRequest,
+    request: Request,
+    task_request: TaskRequest,
     user=Depends(get_current_user)
 ):
 
-    user_message = request.message
+    user_message = task_request.message
 
     plan = create_plan(user_message)
 
