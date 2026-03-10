@@ -13,4 +13,18 @@ class APIAgent:
         if not tool:
             return {"error": "tool not found"}
 
-        return tool(user_context, params)
+        import inspect
+        sig = inspect.signature(tool)
+        kwargs = {}
+        if "user_context" in sig.parameters:
+            kwargs["user_context"] = user_context
+        if "params" in sig.parameters:
+            kwargs["params"] = params
+        if "memory" in sig.parameters:
+            kwargs["memory"] = memory
+        
+        # fallback for old tools that just take (user_context, params)
+        if not kwargs:
+            return tool(user_context, params)
+            
+        return tool(**kwargs)
