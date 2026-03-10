@@ -22,8 +22,9 @@ class TaskExecutor:
 
             try:
                 MAX_RETRIES = 2
+                retries = 0
 
-                for attempt in range(MAX_RETRIES):
+                while retries <= MAX_RETRIES:
                     try:
                         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
                             future = pool.submit(
@@ -40,7 +41,8 @@ class TaskExecutor:
                                 raise TimeoutError("Tool execution timeout")
                             
                     except Exception as e:
-                        if attempt == MAX_RETRIES - 1:
+                        retries += 1
+                        if retries > MAX_RETRIES:
                             raise e
 
                 self.memory.store(tool, result)
