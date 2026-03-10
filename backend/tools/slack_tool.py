@@ -3,12 +3,18 @@ from registry.tool_registry import tool_registry
 import requests
 
 
-def send_slack_message(user_context, params):
+def send_slack_message(user_context, params, memory=None):
 
     token = user_context.get("slack_token")
 
     channel = params.get("channel", "#general")
-    message = params.get("message", "AgentOS message")
+    message = params.get("message")
+    
+    if not message and memory:
+        message = memory.get("summarize_text")
+        
+    if not message:
+        message = "AgentOS message"
 
     headers = {
         "Authorization": f"Bearer {token}",

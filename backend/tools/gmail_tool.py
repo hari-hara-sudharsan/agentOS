@@ -1,13 +1,16 @@
 from registry.tool_registry import tool_registry
+from integrations.token_vault import get_service_token
 import requests
 
 
 def read_gmail(user_context, params):
 
-    token = user_context.get("gmail_token")
+    user_id = user_context["sub"]
 
-    if not token:
-        return {"error": "gmail not connected"}
+    token = get_service_token(
+        "https://gmail.googleapis.com",
+        user_id
+    )
 
     headers = {
         "Authorization": f"Bearer {token}"
@@ -16,9 +19,6 @@ def read_gmail(user_context, params):
     url = "https://gmail.googleapis.com/gmail/v1/users/me/messages"
 
     response = requests.get(url, headers=headers)
-
-    if response.status_code != 200:
-        return {"error": "gmail api failed"}
 
     return response.json()
 
