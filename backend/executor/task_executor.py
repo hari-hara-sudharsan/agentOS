@@ -1,5 +1,6 @@
 from router.task_router import TaskRouter
 from memory.execution_memory import ExecutionMemory
+import concurrent.futures
 
 
 class TaskExecutor:
@@ -24,12 +25,20 @@ class TaskExecutor:
 
                 for attempt in range(MAX_RETRIES):
                     try:
-                        result = self.router.execute_tool(
-                            task,
-                            user_context,
-                            self.memory
-                        )
-                        break
+                        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                            future = pool.submit(
+                                self.router.execute_tool,
+                                task,
+                                user_context,
+                                self.memory
+                            )
+                            
+                            try:
+                                result = future.result(timeout=10)
+                                break
+                            except concurrent.futures.TimeoutError:
+                                raise TimeoutError("Tool execution timeout")
+                            
                     except Exception as e:
                         if attempt == MAX_RETRIES - 1:
                             raise e
