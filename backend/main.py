@@ -5,10 +5,15 @@ from utils.error_handler import global_exception_handler
 
 
 
+
 from database.db import engine
 from database.models import Base
 
 app = FastAPI(title="AgentOS Backend")
+
+origins = [
+    "http://localhost:3000"
+]
 
 app.add_middleware(
     CORSMiddleware,
