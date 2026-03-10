@@ -27,3 +27,11 @@ def readiness():
             "browser_agent"
         ]
     }
+
+@router.get("/version")
+def version():
+
+    return {
+        "app": "AgentOS",
+        "version": "1.0.0"
+    }
