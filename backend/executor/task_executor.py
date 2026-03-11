@@ -1,6 +1,7 @@
 from router.task_router import TaskRouter
 from memory.execution_memory import ExecutionMemory
 import concurrent.futures
+from database.activity_logger import log_activity
 
 
 class TaskExecutor:
@@ -48,6 +49,8 @@ class TaskExecutor:
                 output_key = task.get("output", tool)
                 self.memory.store(output_key, result)
 
+                log_activity(user_context.get("sub", "system"), action=f"execute_tool_{tool}", status="success")
+
                 results.append({
                     "tool": tool,
                     "status": "success",
@@ -55,6 +58,8 @@ class TaskExecutor:
                 })
 
             except Exception as e:
+
+                log_activity(user_context.get("sub", "system"), action=f"execute_tool_{tool}", status="failed")
 
                 results.append({
                     "tool": tool,
