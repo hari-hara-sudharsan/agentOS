@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from security.auth0_client import get_current_user
-from integrations.integration_service import save_integration
+from integrations.integration_service import save_integration, get_integration_token
 
 router = APIRouter()
 
@@ -8,26 +8,22 @@ router = APIRouter()
 @router.get("/")
 def list_integrations(user=Depends(get_current_user)):
 
-    # placeholder integrations
-    integrations = [
-        {
-            "service": "gmail",
-            "connected": False
-        },
-        {
-            "service": "slack",
-            "connected": False
-        },
-        {
-            "service": "google_drive",
-            "connected": False
-        }
-    ]
+    user_id = user["sub"]
 
-    return {
-        "user": user["sub"],
-        "integrations": integrations
-    }
+    services = ["gmail","slack","drive","calendar"]
+
+    result = []
+
+    for s in services:
+
+        token = get_integration_token(user_id, s)
+
+        result.append({
+            "service": s,
+            "connected": token is not None
+        })
+
+    return result
 
 @router.post("/connect/gmail")
 def connect_gmail(token: str, user=Depends(get_current_user)):
