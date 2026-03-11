@@ -1,4 +1,5 @@
 from browser.playwright_runner import run_browser_task
+from browser.workflows import electricity_bill_workflow
 
 
 class BrowserAgent:
@@ -6,8 +7,12 @@ class BrowserAgent:
     def execute(self, task, memory=None):
 
         tool = task["tool"]
-        params = task.get("parameters", {})
 
-        result = run_browser_task(tool, params)
+        if tool == "electricity_bill_workflow":
 
-        return result
+            return electricity_bill_workflow()
+
+        return run_browser_task(
+            tool,
+            task.get("parameters", {})
+        )
