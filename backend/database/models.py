@@ -1,14 +1,41 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
-
 from database.db import Base
+
+
+class User(Base):
+
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    auth0_id = Column(String, unique=True)
+
+    email = Column(String)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Integration(Base):
+
+    __tablename__ = "integrations"
+
+    id = Column(Integer, primary_key=True)
+
+    user_id = Column(String)
+
+    service = Column(String)
+
+    token_reference = Column(String)
+
+    connected_at = Column(DateTime, default=datetime.utcnow)
 
 
 class ActivityLog(Base):
 
     __tablename__ = "activity_logs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
 
     user_id = Column(String)
 
@@ -18,14 +45,19 @@ class ActivityLog(Base):
 
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-class Integration(Base):
 
-    __tablename__ = "integrations"
+class AgentAnalytics(Base):
 
-    id = Column(Integer, primary_key=True, index=True)
+    __tablename__ = "agent_analytics"
+
+    id = Column(Integer, primary_key=True)
 
     user_id = Column(String)
 
-    service = Column(String)
+    task_name = Column(String)
 
-    access_token = Column(String)
+    execution_time = Column(Integer)
+
+    status = Column(String)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
