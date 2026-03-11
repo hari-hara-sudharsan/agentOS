@@ -1,4 +1,6 @@
 from browser.browser_utils import take_screenshot
+from browser.download_manager import save_download
+
 
 def execute_browser_task(page, tool, params):
 
@@ -10,45 +12,39 @@ def execute_browser_task(page, tool, params):
 
             page.goto(url)
 
-            return {"status": "site_opened", "url": url}
-
+            return {"status": "site_opened"}
 
         elif tool == "browser_login":
 
-            username_selector = params.get("username_selector")
-            password_selector = params.get("password_selector")
-            submit_selector = params.get("submit_selector")
+            page.fill(params["username_selector"], params["username"])
+            page.fill(params["password_selector"], params["password"])
 
-            username = params.get("username")
-            password = params.get("password")
-
-            page.fill(username_selector, username)
-            page.fill(password_selector, password)
-
-            page.click(submit_selector)
+            page.click(params["submit_selector"])
 
             page.wait_for_timeout(3000)
 
-            return {"status": "login_attempted"}
-
+            return {"status": "login_success"}
 
         elif tool == "browser_download_file":
 
-            download_selector = params.get("download_selector")
+            with page.expect_download() as download_info:
 
-            page.click(download_selector)
+                page.click(params["download_selector"])
 
-            page.wait_for_timeout(3000)
+            download = download_info.value
 
-            return {"status": "download_triggered"}
+            file_path = save_download(download)
 
-
-        else:
-
-            return {"error": "unknown_browser_tool"}
+            return {
+                "status": "download_complete",
+                "file_path": file_path
+            }
 
     except Exception as e:
 
-        path = take_screenshot(page)
+        screenshot = take_screenshot(page, "browser_error")
 
-        return {"error": str(e), "screenshot": path}
+        return {
+            "error": str(e),
+            "screenshot": screenshot
+        }
