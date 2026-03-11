@@ -8,7 +8,11 @@ def run_browser_task(tool, params):
 
         browser = p.chromium.launch(headless=True)
 
-        page = browser.new_page()
+        context = browser.new_context(
+            accept_downloads=True
+        )
+
+        page = context.new_page()
 
         result = execute_browser_task(page, tool, params)
 
