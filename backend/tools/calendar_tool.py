@@ -1,13 +1,16 @@
 from registry.tool_registry import tool_registry
+from integrations.integration_service import get_integration_token
 import requests
 
 
 def create_calendar_event(user_context, params):
 
-    token = user_context.get("calendar_token")
+    user_id = user_context["sub"]
 
-    if not token:
-        return {"error": "calendar not connected"}
+    token = get_integration_token(
+        user_id,
+        "calendar"
+    )
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -15,13 +18,9 @@ def create_calendar_event(user_context, params):
     }
 
     event = {
-        "summary": params.get("title", "AgentOS Event"),
-        "start": {
-            "dateTime": params.get("start_time")
-        },
-        "end": {
-            "dateTime": params.get("end_time")
-        }
+        "summary": params.get("title"),
+        "start": {"dateTime": params.get("start_time")},
+        "end": {"dateTime": params.get("end_time")}
     }
 
     url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
