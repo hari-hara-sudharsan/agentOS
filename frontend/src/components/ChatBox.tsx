@@ -3,6 +3,7 @@
 import { useState } from "react"
 import MessageInput from "./MessageInput"
 import ExecutionPanel from "./ExecutionPanel"
+import WorkflowGraph from "./WorkflowGraph"
 
 export default function ChatBox() {
 
@@ -26,6 +27,8 @@ export default function ChatBox() {
     return (
 
         <div className="w-full max-w-2xl mt-10">
+            
+            <WorkflowGraph steps={steps} />
 
             <ExecutionPanel goal={goal} steps={steps} />
 
