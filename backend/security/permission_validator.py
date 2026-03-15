@@ -1,7 +1,10 @@
 from security.roles import ROLES
+from security.permissions import check_permission
 
 
 def validate_permission(role, tool):
+
+    check_permission(tool)
 
     allowed_tools = ROLES.get(role, [])
 

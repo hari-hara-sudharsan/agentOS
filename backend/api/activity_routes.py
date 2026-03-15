@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from security.auth0_client import get_current_user
+from database.analytics_repository import get_user_stats
 
 router = APIRouter()
 
@@ -22,3 +23,12 @@ def get_activity_log(user=Depends(get_current_user)):
         "user": user["sub"],
         "activity": activity
     }
+
+@router.get("/analytics")
+def analytics(user=Depends(get_current_user)):
+
+    user_id = user["sub"]
+
+    stats = get_user_stats(user_id)
+
+    return stats
