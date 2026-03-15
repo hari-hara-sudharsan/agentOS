@@ -70,7 +70,7 @@ async def stream_execution(plan, executor, user):
 
 
 @router.post("/run-task-stream")
-@limiter.limit("10/minute")
+@limiter.limit("5/minute")
 async def run_agent_task_stream(
     request: Request,
     task_request: TaskRequest,
