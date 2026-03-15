@@ -3,6 +3,7 @@ from agents.browser_agent import BrowserAgent
 from utils.logger import logger
 from security.auth0_client import get_user_role
 from security.permission_validator import validate_permission
+from security.tool_policy import authorize_tool
 
 
 class TaskRouter:
@@ -17,6 +18,8 @@ class TaskRouter:
         tool = task["tool"]
         logger.info(f"Executing tool: {tool}")
         
+        authorize_tool(tool)
+
         role = get_user_role(user_context)
 
         validate_permission(role, tool)
