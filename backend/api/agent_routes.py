@@ -46,6 +46,15 @@ async def stream_execution(plan, executor, user):
                 executor.memory
             )
 
+            # Log authorized tool execution
+            from database.activity_logger import log_activity
+            user_id = user.get("sub", "system")
+            log_activity(
+                user_id,
+                action=f"tool_execution:{tool}",
+                status="authorized"
+            )
+
             executor.memory.store(tool, result)
 
             yield json.dumps({
@@ -55,11 +64,23 @@ async def stream_execution(plan, executor, user):
             }) + "\n"
 
         except Exception as e:
+            
+            error_str = str(e)
+            from database.activity_logger import log_activity
+            user_id = user.get("sub", "system")
 
+            if "Role" in error_str and "cannot execute tool" in error_str or "Tool not allowed" in error_str:
+                # Log blocked tool execution
+                log_activity(
+                    user_id,
+                    action=f"blocked_tool:{tool}",
+                    status="denied"
+                )
+            
             yield json.dumps({
                 "event": "step_failed",
                 "tool": tool,
-                "error": str(e)
+                "error": error_str
             }) + "\n"
 
         await asyncio.sleep(0.2)

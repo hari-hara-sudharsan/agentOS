@@ -49,7 +49,10 @@ class TaskExecutor:
                 output_key = task.get("output", tool)
                 self.memory.store(output_key, result)
 
-                log_activity(user_context.get("sub", "system"), action=f"execute_tool_{tool}", status="success")
+                user_id = user_context.get("sub", "system")
+
+                log_activity(user_id, action=f"tool_execution:{tool}", status="authorized")
+                log_activity(user_id, action=f"execute_tool_{tool}", status="success")
 
                 results.append({
                     "tool": tool,
@@ -58,13 +61,19 @@ class TaskExecutor:
                 })
 
             except Exception as e:
+                
+                error_str = str(e)
+                user_id = user_context.get("sub", "system")
 
-                log_activity(user_context.get("sub", "system"), action=f"execute_tool_{tool}", status="failed")
+                if "Role" in error_str and "cannot execute tool" in error_str or "Tool not allowed" in error_str:
+                    log_activity(user_id, action=f"blocked_tool:{tool}", status="denied")
+
+                log_activity(user_id, action=f"execute_tool_{tool}", status="failed")
 
                 results.append({
                     "tool": tool,
                     "status": "failed",
-                    "error": str(e)
+                    "error": error_str
                 })
 
         return {
