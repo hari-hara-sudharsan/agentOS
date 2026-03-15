@@ -19,3 +19,13 @@ async def get_current_user(request: Request):
     payload = verify_jwt(token)
 
     return payload
+
+
+def get_user_role(payload):
+
+    roles = payload.get("roles", [])
+
+    if not roles:
+        return "basic_user"
+
+    return roles[0]
