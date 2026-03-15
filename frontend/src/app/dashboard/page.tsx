@@ -12,7 +12,9 @@ export default function Dashboard(){
         AI Agent Dashboard
       </h2>
 
-      <ChatBox/>
+      <div className="bg-white p-6 rounded shadow max-w-3xl">
+        <ChatBox/>
+      </div>
 
     </div>
 
