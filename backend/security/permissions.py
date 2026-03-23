@@ -3,7 +3,8 @@ ALLOWED_ACTIONS = [
     "send_slack_message",
     "create_calendar_event",
     "upload_to_drive",
-    "browser_automation"
+    "browser_automation",
+    "summarize_text"
 ]
 
 

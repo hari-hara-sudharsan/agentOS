@@ -1,0 +1,167 @@
+{
+  "url": "https://gmail.googleapis.com/gmail/v1/users/me/messages",
+  "req_params": {
+    "maxResults": 5
+  },
+  "list_response": {
+    "messages": [
+      {
+        "id": "19d0ed72e6a2e546",
+        "threadId": "19d0ed72e6a2e546"
+      },
+      {
+        "id": "19d0eca30a4b3c93",
+        "threadId": "19d0eca30a4b3c93"
+      },
+      {
+        "id": "19d0e99f89a443c7",
+        "threadId": "19d0e99f89a443c7"
+      },
+      {
+        "id": "19d0e15d5b3c956f",
+        "threadId": "19d0e15d5b3c956f"
+      },
+      {
+        "id": "19d0e105347c7b52",
+        "threadId": "19d0e105347c7b52"
+      }
+    ],
+    "nextPageToken": "17189665434719753950",
+    "resultSizeEstimate": 201
+  },
+  "fetch_errors": [],
+  "parsed_emails_count": 5,
+  "first_msg_payload": {
+    "id": "19d0ed72e6a2e546",
+    "threadId": "19d0ed72e6a2e546",
+    "labelIds": [
+      "UNREAD",
+      "CATEGORY_UPDATES",
+      "INBOX"
+    ],
+    "payload": {
+      "partId": "",
+      "headers": [
+        {
+          "name": "Delivered-To",
+          "value": "sudharsanj008@gmail.com"
+        },
+        {
+          "name": "Received",
+          "value": "by 2002:ac0:ec8f:0:b0:3b9:68f3:10ee with SMTP id x15csp39249imt;        Fri, 20 Mar 2026 22:21:16 -0700 (PDT)"
+        },
+        {
+          "name": "X-Received",
+          "value": "by 2002:a05:600c:1f86:b0:477:9c9e:ec7e with SMTP id 5b1f17b1804b1-486fee2e4efmr39167715e9.6.1774070476486;        Fri, 20 Mar 2026 22:21:16 -0700 (PDT)"
+        },
+        {
+          "name": "ARC-Seal",
+          "value": "i=1; a=rsa-sha256; t=1774070476; cv=none;        d=google.com; s=arc-20240605;        b=l00LgQBy6gDp7MqC/c1S4jS3bCyNFh94FO8MVOIB7IK3+znFUF5CmDLH0ID6EHsdkE         M4u92Ac85G+inh7haCqCV6/i9hhDWhATClTxn1iC5ZdNuIhLn0/CkeGG0j88ZbNOxPzo         ZwgF46zt11WNBHgZ1/Desu8gw1pYgbCU8/91iQCjopkZwGLVRVpKN5nd5fSfsxRdtVqu         7HxI2Z7STJQ2enwf10rlCO9aKypWOnf+lg2+R0b7GxfLAWyhpAOSVIknkJnNuUXwtBJT         cXmO7yXT6hsKB5KpIBWovrsZsu4tmECtKcI/9P9SSevje9tDJbPhsKu1z8HmOj52MSEt         Qm/A=="
+        },
+        {
+          "name": "ARC-Message-Signature",
+          "value": "i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;        h=feedback-id:date:message-id:list-unsubscribe-post:list-unsubscribe         :formatted_cid:reply-to:to:from:subject:mime-version:dkim-signature         :dkim-signature;        bh=XSheZ6poFsYJQrdRW8umoWcZkkliuaGLVDiXdpKXM80=;        fh=X4Q+QJZRmnD0qG+/ptGQmADfVrmPcIDMJAK52Vfnqng=;        b=Cp74Nh9Rh2YIzoTCGzWQ1EyQCL6/k7kTDhbttPA/4clSm0zUKfbYwYdg34NrQsKxlz         MZpganIiCbKx5Lf6HB3dvk2ddgLJkl6FevkUDfzT0/O0Sh92oxvZFs274po7SYuLqK7D         t6cZZekdbUmYTXQWaPUU2BBUhrFu2RGLOhMpopLrKMMcRW7UgBiiPsek6vCqo26wiMp+         YwZXtEqsOkJTb0O0Vv0p8/M4gM5qVIRdsfUQEufhWjFzjC4chZvsbsQyaGQkijeZ8Sgm         s+4szAJ4thiFb4UHhzROX0cX1ZJvsqnob7hjRWCl3iTRAUnAIXOP/7PoYMIWZ0/1QNn3         0yGg==;        dara=google.com"
+        },
+        {
+          "name": "ARC-Authentication-Results",
+          "value": "i=1; mx.google.com;       dkim=pass header.i=@dare2compete.news header.s=qnbnpp7yq5g27mjbenxpg45wdrvgiklm header.b=Mmgk5Cv4;       dkim=pass header.i=@amazonses.com header.s=shh3fegwg5fppqsuzphvschd53n6ihuv header.b=mt4kChzc;       spf=pass (google.com: domain of 0102019d0ed72cf3-40b308bc-d058-45da-a9fa-7503d42314e4-000000@eu-west-1.amazonses.com designates 54.240.6.54 as permitted sender) smtp.mailfrom=0102019d0ed72cf3-40b308bc-d058-45da-a9fa-7503d42314e4-000000@eu-west-1.amazonses.com;       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=dare2compete.news"
+        },
+        {
+          "name": "Return-Path",
+          "value": "<0102019d0ed72cf3-40b308bc-d058-45da-a9fa-7503d42314e4-000000@eu-west-1.amazonses.com>"
+        },
+        {
+          "name": "Received",
+          "value": "from a6-54.smtp-out.eu-west-1.amazonses.com (a6-54.smtp-out.eu-west-1.amazonses.com. [54.240.6.54])        by mx.google.com with ESMTPS id ffacd0b85a97d-43b6475ed30si8718933f8f.441.2026.03.20.22.21.16        for <sudharsanj008@gmail.com>        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);        Fri, 20 Mar 2026 22:21:16 -0700 (PDT)"
+        },
+        {
+          "name": "Received-SPF",
+          "value": "pass (google.com: domain of 0102019d0ed72cf3-40b308bc-d058-45da-a9fa-7503d42314e4-000000@eu-west-1.amazonses.com designates 54.240.6.54 as permitted sender) client-ip=54.240.6.54;"
+        },
+        {
+          "name": "Authentication-Results",
+          "value": "mx.google.com;       dkim=pass header.i=@dare2compete.news header.s=qnbnpp7yq5g27mjbenxpg45wdrvgiklm header.b=Mmgk5Cv4;       dkim=pass header.i=@amazonses.com header.s=shh3fegwg5fppqsuzphvschd53n6ihuv header.b=mt4kChzc;       spf=pass (google.com: domain of 0102019d0ed72cf3-40b308bc-d058-45da-a9fa-7503d42314e4-000000@eu-west-1.amazonses.com designates 54.240.6.54 as permitted sender) smtp.mailfrom=0102019d0ed72cf3-40b308bc-d058-45da-a9fa-7503d42314e4-000000@eu-west-1.amazonses.com;       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=dare2compete.news"
+        },
+        {
+          "name": "DKIM-Signature",
+          "value": "v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple; s=qnbnpp7yq5g27mjbenxpg45wdrvgiklm; d=dare2compete.news; t=1774070476; h=Content-Type:MIME-Version:Subject:From:To:Reply-To:List-Unsubscribe:List-Unsubscribe-Post:Message-ID:Date; bh=XSheZ6poFsYJQrdRW8umoWcZkkliuaGLVDiXdpKXM80=; b=Mmgk5Cv48GHJ5XddStuZ2LX+7+iJ/d/VvpOgc1hBgCsYydFGJqXc40/rdtkuUh4C MbM9A8Pzwttvh3xR2aDqn/xNGfekDW6hoAwTc6nOCKUwfcp49YabK8c5x+4nETKIMTw M849NB7FdZskZYQBTtMb7BHHHnq+JLB5SKqZfIlq+F2yMDFtY4AeJWjGNrVOSZHcwgA 4tBxi03fnUyiuEVT1RWZvgo5tPIW6/jEvfY1pkKlTRa4xTwFIwr7ica06bqpYVQz0/T s0y1v+KhjOyMkoWPX2p2KnBI+S3BXkJUJBgMJ6AmcBjLrDisOsPWoqCaL+e6R+NEoQq x2C0z09xZg=="
+        },
+        {
+          "name": "DKIM-Signature",
+          "value": "v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple; s=shh3fegwg5fppqsuzphvschd53n6ihuv; d=amazonses.com; t=1774070476; h=Content-Type:MIME-Version:Subject:From:To:Reply-To:List-Unsubscribe:List-Unsubscribe-Post:Message-ID:Date:Feedback-ID; bh=XSheZ6poFsYJQrdRW8umoWcZkkliuaGLVDiXdpKXM80=; b=mt4kChzcoPILil9t1gbeQPDb0Q3PGTQq6/G3BJyeS0S+z4ztt2en5KhrH4Eig9XE rLyrNhZqHMzsEEt8J5WCX+0gLyW9Rq57K+1sfwJOxxdJgUU9G7FFne6AMJrlOwGvf7b njddCJSahtZKZy2546RKovKUnmbn6MEWsQb4Qjc0="
+        },
+        {
+          "name": "Content-Type",
+          "value": "multipart/mixed; boundary=\"===============5662032963849061697==\""
+        },
+        {
+          "name": "MIME-Version",
+          "value": "1.0"
+        },
+        {
+          "name": "Subject",
+          "value": "Cisco is hiring for the role of Software Test Engineer!"
+        },
+        {
+          "name": "From",
+          "value": "Jia from Unstop <noreply@dare2compete.news>"
+        },
+        {
+          "name": "To",
+          "value": "sudharsanj008@gmail.com"
+        },
+        {
+          "name": "Reply-To",
+          "value": "noreply@dare2compete.news"
+        },
+        {
+          "name": "x-campaignid",
+          "value": "69bd4f3dfd216aa6dbc382da"
+        },
+        {
+          "name": "formatted_cid",
+          "value": "69bd4f3dfd216aa6dbc382da_F_T_EM_AB_0_P_0_TIME_2026-03-21 05:20:39.257805_L_0"
+        },
+        {
+          "name": "X-SMTPAPI",
+          "value": "{\"unique_args\": {\"cid\": \"69bd4f3dfd216aa6dbc382da\", \"user_id\": \"68065e88e166db6c0fcd0a8f\", \"app_key\": \"BU64JRRIOTIBVKPCO4ONDE61\", \"formatted_cid\": \"69bd4f3dfd216aa6dbc382da_F_T_EM_AB_0_P_0_TIME_2026-03-21 05:20:39.257805_L_0\", \"to_email\": \"sudharsanj008@gmail.com\", \"category\": [\"Job\", \"Exp - Above 2 years\"]}}"
+        },
+        {
+          "name": "List-Unsubscribe",
+          "value": "<https://api-03.moengage.com/v1/emailunsubscribe?qmoe=YWlDJZJL9X%2BtvIJszxShDv47HPBvsoC2YzzjVNPHjrok1jBgRUxm7xLddxWDKrorvX_Iq8c0tg-WTrAj8k7Bo8pqoW2bWYAqwMeppQJHPSW_xZ6cJpdf0OdKEb6W6Jx72_DNT8q%2B5LA0DJdSShK%2Bg-fdvt8mtpAh4cLjIA_iijRN8g3UDybwXwCQC__ZJdPlnbId5hz0paArVoFz95Eris_MJmq_obWQPbwlYAbDlXU2PvPszgGp4kI9tXmzctIBmkz1VIV9QF2yPhkOsARR6Y%2BLh_qJly5YuLru8-NnFiNLCVy4Xtp5FcPFrmPxBDxk74lVHyM4G7SAj%2Bw3SvmNQJe2lG5vpGo%2BWk9MqHg5XN2EGU-E%2BbYAg2An54ZtxxikQy6SBDOciA%2BOq6Ya96eqGXnvEn7>, <mailto:YWlDJZJL9X+tvIJszxShDv47HPBvsoC2YzzjVNPHjrok1jBgRUxm7xLddxWDKrorvX_Iq8c0tg-WTrAj8k7Bo8pqoW2bWYAqwMeppQJHPSW_xZ6cJpdf0OdKEb6W6Jx72_DNT8q+5LA0DJdSShK+g-fdvt8mtpAh4cLjIA_iijRN8g3UDybwXwCQC__ZJdPlnbId5hz0paArVoFz95Eris_MJmq_obWQPbwlYAbDlXU2PvPszgGp4kI9tXmzctIBmkz1VIV9QF2yPhkOsARR6Y+Lh_qJly5YuLru8-unsubscribe-DC03@moengage.co?subject=Unsubscribe | YWlDJZJL9X+tvIJszxShDv47HPBvsoC2YzzjVNPHjrok1jBgRUxm7xLddxWDKrorvX_Iq8c0tg-WTrAj8k7Bo8pqoW2bWYAqwMeppQJHPSW_xZ6cJpdf0OdKEb6W6Jx72_DNT8q+5LA0DJdSShK+g-fdvt8mtpAh4cLjIA_iijRN8g3UDybwXwCQC__ZJdPlnbId5hz0paArVoFz95Eris_MJmq_obWQPbwlYAbDlXU2PvPszgGp4kI9tXmzctIBmkz1VIV9QF2yPhkOsARR6Y+Lh_qJly5YuLru8&body=Hi! I am requesting to be removed from all future marketing emails from your company.>"
+        },
+        {
+          "name": "List-Unsubscribe-Post",
+          "value": "List-Unsubscribe=One-Click"
+        },
+        {
+          "name": "X-MC-Metadata",
+          "value": "{\"cid\": \"69bd4f3dfd216aa6dbc382da\", \"user_id\": \"68065e88e166db6c0fcd0a8f\", \"app_key\": \"BU64JRRIOTIBVKPCO4ONDE61\", \"formatted_cid\": \"69bd4f3dfd216aa6dbc382da_F_T_EM_AB_0_P_0_TIME_2026-03-21 05:20:39.257805_L_0\", \"to_email\": \"sudharsanj008@gmail.com\"}"
+        },
+        {
+          "name": "X-MSYS-API",
+          "value": "{\"campaign_id\": \"69bd4f3dfd216aa6dbc382da\", \"metadata\": {\"cid\": \"69bd4f3dfd216aa6dbc382da\", \"user_id\": \"68065e88e166db6c0fcd0a8f\", \"app_key\": \"BU64JRRIOTIBVKPCO4ONDE61\", \"from\": \"noreply@dare2compete.news\", \"subject\": \"Cisco is hiring for the role of Software Test Engineer!\", \"formatted_cid\": \"69bd4f3dfd216aa6dbc382da_F_T_EM_AB_0_P_0_TIME_2026-03-21 05:20:39.257805_L_0\", \"to_email\": \"sudharsanj008@gmail.com\"}}"
+        },
+        {
+          "name": "Message-ID",
+          "value": "<0102019d0ed72cf3-40b308bc-d058-45da-a9fa-7503d42314e4-000000@eu-west-1.amazonses.com>"
+        },
+        {
+          "name": "Date",
+          "value": "Sat, 21 Mar 2026 05:21:16 +0000"
+        },
+        {
+          "name": "Feedback-ID",
+          "value": "V8oHepXrTmOYyI8OaT7L_sf83IUpoOSAdu55CVEzq0XuetEx.X.Bpg5NsTT4_hjZcRCwhA:dm50EpHz1IU8BEugPeWFfwnkOwnnqWeesRUh5z1ei25BBIsCOoyfZGhGgKwNCWblhgw2Vg:1.eu-west-1.OOq4VW4GB9E19Gpn7WXkcQOaAVD5Ts4Ci8b0tw91py8=:AmazonSES"
+        },
+        {
+          "name": "X-SES-Outgoing",
+          "value": "2026.03.21-54.240.6.54"
+        }
+      ]
+    },
+    "sizeEstimate": 86864,
+    "historyId": "687525",
+    "internalDate": "1774070476000"
+  }
+}

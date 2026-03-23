@@ -3,12 +3,13 @@ from integrations.integration_service import get_integration_token
 import requests
 
 
-def send_slack_message(user_context, params, memory=None):
+from security.auth0_client import check_mfa_and_consent
 
-    user_id = user_context["sub"]
+def send_slack_message(user_context, params, memory=None):
+    check_mfa_and_consent(user_context, params)
 
     token = get_integration_token(
-        user_id,
+        user_context,
         "slack"
     )
 

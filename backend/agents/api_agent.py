@@ -7,6 +7,10 @@ class APIAgent:
 
         tool_name = task["tool"]
         params = task.get("parameters", {})
+        
+        # Merge input from task so tools can access it natively
+        if "input" in task and task["input"]:
+            params["input"] = task["input"]
 
         tool = tool_registry.get(tool_name)
 

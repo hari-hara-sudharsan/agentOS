@@ -25,15 +25,46 @@ def list_integrations(user=Depends(get_current_user)):
 
     return result
 
-@router.post("/connect/gmail")
-def connect_gmail(token: str, user=Depends(get_current_user)):
+from pydantic import BaseModel
+
+class TokenRequest(BaseModel):
+    token: str
+
+@router.post("/connect/{service}")
+def connect_service(service: str, req: TokenRequest, user=Depends(get_current_user)):
 
     user_id = user["sub"]
 
     save_integration(
         user_id,
-        "gmail",
-        token
+        service,
+        req.token
     )
 
-    return {"status": "gmail_connected"}
+    return {"status": f"{service}_connected"}
+
+
+@router.delete("/disconnect/{service}")
+def disconnect_service(service: str, user=Depends(get_current_user)):
+    user_id = user["sub"]
+    from database.db import SessionLocal
+    from database.models import Integration
+    from integrations.integration_service import revoke_token_from_vault
+    
+    connection_map = {
+        "gmail": "google-oauth2",
+        "drive": "google-oauth2",
+        "calendar": "google-oauth2",
+        "slack": "slack"
+    }
+    
+    # Job 6: Secure Vault Revocation
+    revoke_token_from_vault(user, connection_map.get(service, service))
+    
+    db = SessionLocal()
+    integration = db.query(Integration).filter(Integration.user_id == user_id, Integration.service == service).first()
+    if integration:
+        db.delete(integration)
+        db.commit()
+    db.close()
+    return {"status": f"{service}_disconnected"}

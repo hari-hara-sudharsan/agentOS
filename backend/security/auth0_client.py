@@ -29,3 +29,15 @@ def get_user_role(payload):
         return "basic_user"
 
     return roles[0]
+
+
+class ConsentRequiredException(Exception):
+    pass
+
+def check_mfa_and_consent(user_context, params):
+    """
+    Job 4: Async Step-up Auth (Human-in-the-loop).
+    Checks if the user has provided explicit step-up consent for high-stakes actions.
+    """
+    if not params.get("consent_granted"):
+        raise ConsentRequiredException("step_up_required")

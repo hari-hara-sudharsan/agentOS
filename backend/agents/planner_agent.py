@@ -38,7 +38,8 @@ Return format:
    {
      "step":1,
      "tool":"tool_name",
-     "input":"optional_input_from_memory",
+     "parameters": {"query": "optional_search_term"},
+     "input":"optional_input_from_memory_key",
      "output":"optional_memory_key_to_save",
      "description":"task explanation"
    }

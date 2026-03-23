@@ -10,6 +10,12 @@ from database.db import engine
 from database.models import Base
 from utils.rate_limiter import limiter
 
+import tools.gmail_tool
+import tools.slack_tool
+import tools.drive_tool
+import tools.calendar_tool
+import tools.summarize_text
+
 app = FastAPI(title="AgentOS Backend")
 
 app.state.limiter = limiter

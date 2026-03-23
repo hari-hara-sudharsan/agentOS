@@ -5,24 +5,29 @@ from database.analytics_repository import get_user_stats
 router = APIRouter()
 
 
+from database.db import SessionLocal
+from database.models import AgentAnalytics
+
 @router.get("/")
 def get_activity_log(user=Depends(get_current_user)):
 
-    activity = [
-        {
-            "time": "10:02 AM",
-            "action": "gmail_accessed"
-        },
-        {
-            "time": "10:03 AM",
-            "action": "email_summary_generated"
-        }
-    ]
+    user_id = user["sub"]
+    db = SessionLocal()
+    
+    logs = db.query(AgentAnalytics).filter(
+        AgentAnalytics.user_id == user_id
+    ).order_by(AgentAnalytics.created_at.desc()).limit(20).all()
 
-    return {
-        "user": user["sub"],
-        "activity": activity
-    }
+    activity = []
+    for log in logs:
+        activity.append({
+            "task_name": log.task_name,
+            "status": log.status,
+            "execution_time": round(float(log.execution_time), 1)
+        })
+        
+    db.close()
+    return activity
 
 @router.get("/analytics")
 def analytics(user=Depends(get_current_user)):

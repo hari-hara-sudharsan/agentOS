@@ -3,12 +3,14 @@ from integrations.integration_service import get_integration_token
 import requests
 
 
-def create_calendar_event(user_context, params):
+from security.auth0_client import check_mfa_and_consent
 
-    user_id = user_context["sub"]
+def create_calendar_event(user_context, params):
+    # Enforce Scoped / Least-Privilege Access Enforcement
+    check_mfa_and_consent(user_context, params)
 
     token = get_integration_token(
-        user_id,
+        user_context,
         "calendar"
     )
 

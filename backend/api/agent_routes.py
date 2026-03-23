@@ -69,6 +69,19 @@ async def stream_execution(plan, executor, user):
             from database.activity_logger import log_activity
             user_id = user.get("sub", "system")
 
+            if "step_up_required" in error_str:
+                log_activity(
+                    user_id,
+                    action=f"awaiting_consent:{tool}",
+                    status="pending"
+                )
+                yield json.dumps({
+                    "event": "awaiting_consent",
+                    "tool": tool,
+                    "task": task
+                }) + "\n"
+                break
+
             if "Role" in error_str and "cannot execute tool" in error_str or "Tool not allowed" in error_str:
                 # Log blocked tool execution
                 log_activity(
@@ -106,6 +119,42 @@ async def run_agent_task_stream(
         stream_execution(plan, task_executor, user),
         media_type="application/json"
     )
+
+class ResumeRequest(BaseModel):
+    task: dict
+
+@router.post("/resume-task")
+@limiter.limit("10/minute")
+def resume_agent_task(
+    request: Request,
+    resume_req: ResumeRequest,
+    user=Depends(get_current_user)
+):
+    """
+    Job 4: Async Step-up Auth (Resume).
+    Frontend calls this after user approves the step-up prompt.
+    """
+    task = resume_req.task
+    if "params" not in task:
+        task["params"] = {}
+    
+    # Indicate to the backend that consent has been confirmed
+    task["params"]["consent_granted"] = True
+    
+    try:
+        result = task_executor.router.execute_tool(
+            task,
+            user,
+            task_executor.memory
+        )
+        # Log successful completion after step-up
+        from database.activity_logger import log_activity
+        log_activity(user.get("sub", "system"), action=f"step_up_approved:{task['tool']}", status="success")
+        
+        task_executor.memory.store(task["tool"], result)
+        return {"status": "success", "result": result}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 @router.get("/tools")
