@@ -9,18 +9,41 @@ router = APIRouter()
 def list_integrations(user=Depends(get_current_user)):
 
     user_id = user["sub"]
-
-    services = ["gmail","slack","drive","calendar"]
-
+    services = ["gmail", "slack", "drive", "calendar"]
     result = []
+    
+    scopes_map = {
+        "gmail": {
+            "name": "Gmail (Read-Only)",
+            "scopes": ["gmail.readonly"],
+            "description": "Allows agent to read your inbox. Cannot send emails."
+        },
+        "drive": {
+            "name": "Google Drive",
+            "scopes": ["drive.file"],
+            "description": "Allows agent to upload files. Cannot delete existing files."
+        },
+        "calendar": {
+            "name": "Google Calendar",
+            "scopes": ["calendar.events"],
+            "description": "Allows agent to view and schedule calendar events."
+        },
+        "slack": {
+            "name": "Slack Channels",
+            "scopes": ["chat:write", "channels:read"],
+            "description": "Allows agent to read channels and post messages."
+        }
+    }
 
     for s in services:
-
-        token = get_integration_token(user_id, s)
-
+        token = get_integration_token(user, s)
+        info = scopes_map.get(s, {})
         result.append({
             "service": s,
-            "connected": token is not None
+            "connected": token is not None,
+            "name": info.get("name", s),
+            "scopes": info.get("scopes", []),
+            "description": info.get("description", "")
         })
 
     return result
