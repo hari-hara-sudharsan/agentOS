@@ -1,21 +1,476 @@
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ──────────────────────────────────────────
+   Design Tokens
+   ────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Background layers */
+  --bg-base:        #faf8f5;
+  --bg-surface:     #f3ede4;
+  --bg-elevated:    #ffffff;
+
+  /* Foreground */
+  --fg-primary:     #1c1917;
+  --fg-secondary:   #57534e;
+  --fg-muted:       #a8a29e;
+
+  /* Brand accent — warm amber */
+  --accent:         #c2854a;
+  --accent-light:   #f0d9bc;
+  --accent-dark:    #8c5a2b;
+
+  /* Semantic */
+  --success:        #4a7c59;
+  --warning:        #b45309;
+  --danger:         #9b3535;
+  --info:           #3b6fa0;
+
+  /* Typography */
+  --font-display:   'Lora', Georgia, serif;
+  --font-body:      'DM Sans', sans-serif;
+  --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Scale */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+
+  /* Spacing rhythm */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Radius */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   14px;
+  --radius-xl:   22px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 3px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.04);
+  --shadow-md:  0 4px 12px rgba(28, 25, 23, 0.08), 0 2px 4px rgba(28, 25, 23, 0.04);
+  --shadow-lg:  0 12px 32px rgba(28, 25, 23, 0.12), 0 4px 8px rgba(28, 25, 23, 0.06);
+  --shadow-accent: 0 4px 20px rgba(194, 133, 74, 0.25);
+
+  /* Transitions */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast:   150ms;
+  --duration-base:   250ms;
+  --duration-slow:   400ms;
+
+  /* Layout */
+  --max-width:    1200px;
+  --content-width: 720px;
 }
 
+/* ── Dark Mode ── */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-base:      #141210;
+    --bg-surface:   #1e1a17;
+    --bg-elevated:  #272320;
+
+    --fg-primary:   #f5f0ea;
+    --fg-secondary: #a89f96;
+    --fg-muted:     #6b635c;
+
+    --accent:       #d4956a;
+    --accent-light: #3d2510;
+    --accent-dark:  #f0c49a;
+
+    --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md:  0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+    --shadow-lg:  0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.25);
+    --shadow-accent: 0 4px 20px rgba(212, 149, 106, 0.2);
   }
 }
 
+/* ──────────────────────────────────────────
+   Reset & Base
+   ────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--fg-primary);
+  background-color: var(--bg-base);
+
+  /* Subtle warm grain texture */
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(194, 133, 74, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(194, 133, 74, 0.03) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+
+  min-height: 100vh;
+  transition: background-color var(--duration-slow) var(--ease-smooth),
+              color var(--duration-slow) var(--ease-smooth);
+}
+
+/* ──────────────────────────────────────────
+   Typography
+   ────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--fg-primary);
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--text-5xl); line-height: 1.1; }
+h2 { font-size: var(--text-4xl); }
+h3 { font-size: var(--text-3xl); }
+h4 { font-size: var(--text-2xl); }
+h5 { font-size: var(--text-xl); }
+h6 { font-size: var(--text-lg); }
+
+p {
+  color: var(--fg-secondary);
+  line-height: 1.75;
+}
+
+strong, b { font-weight: 600; color: var(--fg-primary); }
+em, i     { font-style: italic; font-family: var(--font-display); }
+
+small { font-size: var(--text-sm); color: var(--fg-muted); }
+
+/* ──────────────────────────────────────────
+   Links
+   ────────────────────────────────────────── */
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color var(--duration-fast) var(--ease-smooth),
+              border-color var(--duration-fast) var(--ease-smooth);
+}
+
+a:hover {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent-light);
+}
+
+/* ──────────────────────────────────────────
+   Code
+   ────────────────────────────────────────── */
+code, kbd, samp {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+code {
+  background: var(--bg-surface);
+  color: var(--accent-dark);
+  padding: 0.15em 0.45em;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-light);
+}
+
+pre {
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--fg-primary);
+  font-size: var(--text-sm);
+}
+
+/* ──────────────────────────────────────────
+   Horizontal Rule
+   ────────────────────────────────────────── */
+hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--accent-light),
+    transparent
+  );
+  margin: var(--space-8) 0;
+}
+
+/* ──────────────────────────────────────────
+   Lists
+   ────────────────────────────────────────── */
+ul, ol {
+  padding-left: var(--space-6);
+  color: var(--fg-secondary);
+}
+
+li + li { margin-top: var(--space-2); }
+
+ul li::marker { color: var(--accent); }
+ol li::marker { color: var(--accent); font-weight: 600; }
+
+/* ──────────────────────────────────────────
+   Blockquote
+   ────────────────────────────────────────── */
+blockquote {
+  border-left: 3px solid var(--accent);
+  margin: var(--space-6) 0;
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-surface);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--fg-secondary);
+}
+
+blockquote cite {
+  display: block;
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-style: normal;
+  color: var(--fg-muted);
+}
+
+/* ──────────────────────────────────────────
+   Images & Media
+   ────────────────────────────────────────── */
+img, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+figure {
+  margin: var(--space-8) 0;
+}
+
+figcaption {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+  text-align: center;
+  font-style: italic;
+}
+
+/* ──────────────────────────────────────────
+   Tables
+   ────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+thead {
+  background: var(--bg-surface);
+  border-bottom: 2px solid var(--accent-light);
+}
+
+th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: 600;
+  color: var(--fg-primary);
+  font-family: var(--font-body);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: var(--text-xs);
+}
+
+td {
+  padding: var(--space-3) var(--space-4);
+  color: var(--fg-secondary);
+  border-bottom: 1px solid var(--bg-surface);
+}
+
+tr:last-child td { border-bottom: none; }
+
+tbody tr {
+  transition: background-color var(--duration-fast) var(--ease-smooth);
+}
+
+tbody tr:hover {
+  background: var(--bg-surface);
+}
+
+/* ──────────────────────────────────────────
+   Form Elements
+   ────────────────────────────────────────── */
+input,
+textarea,
+select {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--fg-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  width: 100%;
+  outline: none;
+  transition:
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--fg-muted);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--fg-primary);
+}
+
+/* ──────────────────────────────────────────
+   Buttons
+   ────────────────────────────────────────── */
+button {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-6);
+  transition:
+    background-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-bounce);
+}
+
+button:active { transform: scale(0.97); }
+
+/* Primary */
+button:not([class]) {
+  background: var(--accent);
+  color: #fff;
+}
+
+button:not([class]):hover {
+  background: var(--accent-dark);
+  box-shadow: var(--shadow-accent);
+}
+
+/* ──────────────────────────────────────────
+   Selection
+   ────────────────────────────────────────── */
+::selection {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+/* ──────────────────────────────────────────
+   Scrollbar (Webkit)
+   ────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-surface);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-muted);
+}
+
+/* ──────────────────────────────────────────
+   Focus Visible (Accessibility)
+   ────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ──────────────────────────────────────────
+   Utility Layer (Tailwind-compatible)
+   ────────────────────────────────────────── */
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+
+  .surface {
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+  }
+
+  .elevated {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-6);
+  }
+
+  .accent-gradient {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  }
+
+  .text-accent   { color: var(--accent); }
+  .text-muted    { color: var(--fg-muted); }
+  .text-secondary { color: var(--fg-secondary); }
+
+  .font-display  { font-family: var(--font-display); }
+  .font-body     { font-family: var(--font-body); }
+  .font-mono     { font-family: var(--font-mono); }
 }
