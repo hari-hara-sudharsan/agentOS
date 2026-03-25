@@ -15,7 +15,7 @@ export default function LogoutButton() {
           },
         })
       }
-      className="bg-transparent border border-[var(--red-dim)] hover:border-[var(--red-hot)] text-[var(--red-hot)] hover:text-white hover:bg-[var(--red-dim)] hover:shadow-[var(--shadow-red)] px-5 py-2 text-sm uppercase tracking-widest transition-all duration-300 rounded-sm"
+      className="bg-transparent border border-amber-600 hover:border-amber-400 text-amber-200 hover:text-white hover:bg-red-700/30 px-5 py-2 text-sm uppercase tracking-widest font-medium transition-all duration-300 rounded-lg hover:shadow-lg"
     >
       Logout
     </button>
