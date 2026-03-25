@@ -9,7 +9,7 @@ export default function LoginButton() {
   return (
     <button
       onClick={() => loginWithRedirect()}
-      className="bg-blue-500 px-4 py-2 rounded"
+      className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2 rounded-lg font-medium text-sm uppercase tracking-wider transition-colors duration-200"
     >
       Login
     </button>
