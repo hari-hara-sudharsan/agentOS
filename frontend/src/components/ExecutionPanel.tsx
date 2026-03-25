@@ -25,43 +25,43 @@ const STATUS: Record<string, {
 }> = {
   pending: {
     label: "STANDBY",
-    color: "rgba(148,140,120,0.65)",
+    color: "rgba(148,163,184,0.75)",
     glow:  "transparent",
-    bg:    "rgba(15,16,28,0.6)",
-    border:"rgba(148,140,120,0.1)",
-    dot:   "rgba(148,140,120,0.4)",
+    bg:    "rgba(15,19,29,0.7)",
+    border:"rgba(148,163,184,0.15)",
+    dot:   "rgba(148,163,184,0.5)",
   },
   running: {
     label: "EXECUTING",
-    color: "#eab308",
-    glow:  "rgba(234,179,8,0.25)",
-    bg:    "rgba(234,179,8,0.06)",
-    border:"rgba(234,179,8,0.22)",
-    dot:   "#eab308",
+    color: "#fbbf24",
+    glow:  "rgba(251,191,36,0.3)",
+    bg:    "rgba(251,191,36,0.08)",
+    border:"rgba(251,191,36,0.25)",
+    dot:   "#fbbf24",
   },
   completed: {
     label: "COMPLETE",
-    color: "#22c55e",
-    glow:  "rgba(34,197,94,0.2)",
-    bg:    "rgba(34,197,94,0.05)",
-    border:"rgba(34,197,94,0.2)",
-    dot:   "#22c55e",
+    color: "#4ade80",
+    glow:  "rgba(74,222,128,0.25)",
+    bg:    "rgba(74,222,128,0.08)",
+    border:"rgba(74,222,128,0.25)",
+    dot:   "#4ade80",
   },
   failed: {
     label: "FAILURE",
-    color: "#ff2828",
-    glow:  "rgba(255,40,40,0.3)",
-    bg:    "rgba(255,40,40,0.07)",
-    border:"rgba(255,40,40,0.28)",
-    dot:   "#ff2828",
+    color: "#f87171",
+    glow:  "rgba(248,113,113,0.35)",
+    bg:    "rgba(248,113,113,0.1)",
+    border:"rgba(248,113,113,0.3)",
+    dot:   "#f87171",
   },
   awaiting_consent: {
     label: "AWAITING CONSENT",
-    color: "#a855f7",
-    glow:  "rgba(168,85,247,0.3)",
-    bg:    "rgba(168,85,247,0.07)",
-    border:"rgba(168,85,247,0.28)",
-    dot:   "#a855f7",
+    color: "#c084fc",
+    glow:  "rgba(192,132,252,0.35)",
+    bg:    "rgba(192,132,252,0.1)",
+    border:"rgba(192,132,252,0.3)",
+    dot:   "#c084fc",
   },
 }
 
@@ -167,32 +167,33 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
         /* ── Goal header ── */
         .ep-goal {
           padding: 16px 0 14px;
-          border-bottom: 1px solid rgba(255,40,40,0.08);
+          border-bottom: 1px solid rgba(239,68,68,0.12);
           margin-bottom: 16px;
         }
 
         .ep-goal-eyebrow {
           font-size: 8px; letter-spacing: 0.38em; text-transform: uppercase;
-          color: rgba(255,40,40,0.45);
+          color: rgba(239,68,68,0.55);
           margin-bottom: 6px;
           display: flex; align-items: center; gap: 8px;
+          font-weight: 600;
         }
         .ep-goal-eyebrow::before {
           content: '';
           display: inline-block;
           width: 20px; height: 1px;
-          background: linear-gradient(90deg, rgba(255,40,40,0.6), transparent);
+          background: linear-gradient(90deg, rgba(239,68,68,0.7), transparent);
         }
 
         .ep-goal-text {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 22px; letter-spacing: 0.06em;
-          color: rgba(238,232,222,0.92);
+          font-size: 24px; letter-spacing: 0.06em;
+          color: rgba(240,245,250,0.95);
           line-height: 1.1;
         }
 
         .ep-goal-text.empty {
-          color: rgba(130,122,108,0.3);
+          color: rgba(148,163,184,0.45);
           font-size: 16px;
           letter-spacing: 0.14em;
         }
@@ -200,37 +201,43 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
         /* ── Step counter row ── */
         .ep-counts {
           display: flex; gap: 0;
-          border: 1px solid rgba(255,40,40,0.1);
-          border-radius: 6px;
+          border: 1px solid rgba(239,68,68,0.15);
+          border-radius: 8px;
           overflow: hidden;
           margin-bottom: 20px;
+          background: rgba(15,19,29,0.4);
         }
 
         .ep-count-seg {
           flex: 1;
-          padding: 8px 0;
-          display: flex; flex-direction: column; align-items: center; gap: 2px;
-          border-right: 1px solid rgba(255,40,40,0.08);
+          padding: 12px 0;
+          display: flex; flex-direction: column; align-items: center; gap: 4px;
+          border-right: 1px solid rgba(239,68,68,0.1);
+          transition: background 0.2s ease;
+        }
+        .ep-count-seg:hover {
+          background: rgba(239,68,68,0.05);
         }
         .ep-count-seg:last-child { border-right: none; }
 
         .ep-count-label {
-          font-size: 7px; letter-spacing: 0.3em; text-transform: uppercase;
-          color: rgba(130,122,108,0.35);
+          font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase;
+          color: rgba(148,163,184,0.55);
+          font-weight: 600;
         }
         .ep-count-val {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 20px; letter-spacing: 0.04em;
+          font-size: 24px; letter-spacing: 0.04em;
           line-height: 1;
         }
-        .ep-count-val.wh { color: rgba(200,194,180,0.7); }
+        .ep-count-val.wh { color: rgba(203,213,225,0.85); }
         .ep-count-val.yw { color: #eab308; }
         .ep-count-val.gr { color: #22c55e; }
-        .ep-count-val.rd { color: #ff2828; }
+        .ep-count-val.rd { color: #ef4444; }
 
         /* ── Steps list ── */
         .ep-steps {
-          display: flex; flex-direction: column; gap: 8px;
+          display: flex; flex-direction: column; gap: 10px;
         }
 
         /* ── Step card ── */
@@ -241,26 +248,28 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
           transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .ep-step:hover {
-          transform: translateX(3px);
+          transform: translateX(4px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         .ep-step-head {
           display: flex; align-items: center;
-          padding: 10px 14px;
+          padding: 12px 16px;
           gap: 12px;
         }
 
         /* Index badge */
         .ep-step-idx {
-          font-size: 9px; letter-spacing: 0.2em;
-          color: rgba(130,122,108,0.35);
-          min-width: 22px; flex-shrink: 0;
+          font-size: 10px; letter-spacing: 0.2em;
+          color: rgba(148,163,184,0.55);
+          min-width: 24px; flex-shrink: 0;
           font-family: 'Bebas Neue', sans-serif;
+          font-weight: 600;
         }
 
         /* Status dot */
         .ep-step-dot {
-          width: 7px; height: 7px; border-radius: 50%;
+          width: 8px; height: 8px; border-radius: 50%;
           flex-shrink: 0;
         }
         .ep-step-dot.running {
@@ -268,24 +277,26 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
         }
         @keyframes dot-throb {
           0%,100% { opacity: 1; transform: scale(1); }
-          50%      { opacity: 0.4; transform: scale(0.7); }
+          50%      { opacity: 0.5; transform: scale(0.8); }
         }
 
         /* Tool name */
         .ep-step-tool {
           flex: 1;
-          font-size: 12px; letter-spacing: 0.08em;
-          color: rgba(238,232,222,0.88);
+          font-size: 13px; letter-spacing: 0.08em;
+          color: rgba(240,245,250,0.92);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          font-weight: 500;
         }
 
         /* Status badge */
         .ep-step-badge {
-          font-size: 7px; letter-spacing: 0.24em; text-transform: uppercase;
-          padding: 2px 8px;
+          font-size: 8px; letter-spacing: 0.24em; text-transform: uppercase;
+          padding: 3px 9px;
           border-radius: 100px;
           border: 1px solid;
           flex-shrink: 0;
+          font-weight: 600;
         }
 
         /* Running spinner text */
@@ -294,7 +305,7 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
         }
         @keyframes badge-flash {
           0%,100% { opacity: 1; }
-          50%      { opacity: 0.45; }
+          50%      { opacity: 0.55; }
         }
 
         /* ── Progress bar (running only) ── */
@@ -316,33 +327,35 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
 
         /* ── Result blocks ── */
         .ep-result {
-          padding: 10px 14px 12px;
-          display: flex; flex-direction: column; gap: 6px;
-          border-top: 1px solid rgba(255,255,255,0.04);
+          padding: 12px 16px 14px;
+          display: flex; flex-direction: column; gap: 8px;
+          border-top: 1px solid rgba(239,68,68,0.08);
+          background: rgba(15,19,29,0.3);
         }
 
         .ep-result-label {
-          font-size: 7px; letter-spacing: 0.32em; text-transform: uppercase;
-          color: rgba(255,40,40,0.4);
+          font-size: 8px; letter-spacing: 0.32em; text-transform: uppercase;
+          color: rgba(239,68,68,0.65);
+          font-weight: 600;
         }
 
         .ep-result-body {
-          font-size: 11px; line-height: 1.65; letter-spacing: 0.02em;
-          color: rgba(200,194,180,0.7);
+          font-size: 12px; line-height: 1.6; letter-spacing: 0.02em;
+          color: rgba(203,213,225,0.85);
         }
-        .ep-result-body--error { color: rgba(255,80,80,0.85); }
+        .ep-result-body--error { color: rgba(248,113,113,0.9); }
 
-        .ep-result--summary .ep-result-label { color: rgba(99,180,255,0.5); }
-        .ep-result--summary .ep-result-body  { color: rgba(180,210,255,0.7); }
-        .ep-result--error   .ep-result-label { color: rgba(255,80,80,0.5); }
+        .ep-result--summary .ep-result-label { color: rgba(96,165,250,0.65); }
+        .ep-result--summary .ep-result-body  { color: rgba(147,197,253,0.9); }
+        .ep-result--error   .ep-result-label { color: rgba(248,113,113,0.7); }
 
         .ep-result-scroll {
-          max-height: 120px;
+          max-height: 140px;
           overflow-y: auto;
         }
-        .ep-result-scroll::-webkit-scrollbar { width: 3px; }
+        .ep-result-scroll::-webkit-scrollbar { width: 4px; }
         .ep-result-scroll::-webkit-scrollbar-thumb {
-          background: rgba(255,40,40,0.2); border-radius: 3px;
+          background: rgba(239,68,68,0.25); border-radius: 3px;
         }
 
         .ep-result-pre {
