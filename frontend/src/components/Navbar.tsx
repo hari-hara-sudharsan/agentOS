@@ -7,28 +7,28 @@ import LogoutButton from "./LogoutButton"
 export default function Navbar() {
 
   return (
-    <nav className="flex justify-between items-center px-8 py-5 border-b border-[var(--border-red)] bg-black/40 backdrop-blur-md sticky top-0 z-50">
+    <nav className="flex justify-between items-center px-8 py-6 border-b border-amber-700 bg-slate-900 backdrop-blur-md sticky top-0 z-50 shadow-lg">
       <div className="flex items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-widest text-[#ff2d2d] uppercase" style={{ fontFamily: 'var(--font-display)', textShadow: 'var(--shadow-red)' }}>
+        <h1 className="text-4xl font-bold tracking-widest text-amber-400 uppercase" style={{ fontFamily: 'var(--font-display)' }}>
           AGENTOS
         </h1>
       </div>
 
-      <div className="flex gap-8 items-center text-sm uppercase tracking-widest text-[var(--white-base)]">
-        <Link href="/dashboard" className="hover:text-[var(--red-hot)] transition-colors duration-300 relative group">
+      <div className="flex gap-8 items-center text-sm uppercase tracking-widest text-amber-100">
+        <Link href="/dashboard" className="hover:text-amber-300 transition-colors duration-300 relative group font-medium">
           Dashboard
-          <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-[var(--red-hot)] group-hover:w-full transition-all duration-300"></span>
+          <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-amber-300 group-hover:w-full transition-all duration-300"></span>
         </Link>
-        <Link href="/integrations" className="hover:text-[var(--red-hot)] transition-colors duration-300 relative group">
+        <Link href="/integrations" className="hover:text-amber-300 transition-colors duration-300 relative group font-medium">
           Integrations
-          <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-[var(--red-hot)] group-hover:w-full transition-all duration-300"></span>
+          <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-amber-300 group-hover:w-full transition-all duration-300"></span>
         </Link>
-        <Link href="/activity" className="hover:text-[var(--red-hot)] transition-colors duration-300 relative group">
+        <Link href="/activity" className="hover:text-amber-300 transition-colors duration-300 relative group font-medium">
           Activity
-          <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-[var(--red-hot)] group-hover:w-full transition-all duration-300"></span>
+          <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-amber-300 group-hover:w-full transition-all duration-300"></span>
         </Link>
 
-        <div className="h-6 w-px bg-[var(--border-white)] mx-2"></div>
+        <div className="h-6 w-px bg-amber-700 mx-3"></div>
 
         <UserProfile />
         <LogoutButton />
