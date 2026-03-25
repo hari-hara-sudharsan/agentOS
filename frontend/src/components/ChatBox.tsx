@@ -16,7 +16,7 @@ export default function ChatBox() {
     updateStep(tool, "running");
     try {
       const token = await getAccessTokenSilently();
-      const res = await fetch("http://localhost:8000/api/agent/resume-task", {
+      const res = await fetch("http://127.0.0.1:8000/api/agent/resume-task", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,40 +57,40 @@ export default function ChatBox() {
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap');
 
         :root {
-          --void:      #02030a;
-          --deep:      #06070f;
-          --surface:   #0b0c1a;
-          --raised:    #0f1020;
-          --red:       #ff2828;
-          --red-dim:   #6e0e0e;
-          --red-ember: rgba(255,40,40,0.07);
-          --off-white: rgba(238,232,222,0.9);
-          --muted:     rgba(180,172,158,0.48);
-          --dim:       rgba(130,122,108,0.26);
+          --void:      #0f1419;
+          --deep:      #1a1f2e;
+          --surface:   #252d3d;
+          --raised:    #2d3647;
+          --red:       #ef4444;
+          --red-dim:   #7f1d1d;
+          --red-ember: rgba(239,68,68,0.12);
+          --off-white: rgba(240,245,250,0.95);
+          --muted:     rgba(203,213,225,0.65);
+          --dim:       rgba(148,163,184,0.48);
           --green:     #22c55e;
           --yellow:    #eab308;
-          --border:    rgba(255,40,40,0.11);
-          --border-hot:rgba(255,40,40,0.38);
+          --border:    rgba(239,68,68,0.18);
+          --border-hot:rgba(239,68,68,0.45);
         }
 
         /* ══ SHELL ══ */
         .cb-shell {
           width: 100%;
-          max-width: 860px;
+          max-width: 900px;
           display: flex;
           flex-direction: column;
           gap: 0;
           font-family: 'DM Mono', monospace;
           border: 1px solid var(--border);
-          border-radius: 16px;
+          border-radius: 12px;
           overflow: hidden;
-          background: rgba(6,7,15,0.82);
-          backdrop-filter: blur(28px);
-          -webkit-backdrop-filter: blur(28px);
+          background: rgba(26,31,46,0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           box-shadow:
-            0 0 0 1px rgba(255,255,255,0.025) inset,
-            0 32px 80px rgba(0,0,0,0.75),
-            0 0 80px rgba(255,40,40,0.04);
+            0 0 0 1px rgba(255,255,255,0.05) inset,
+            0 32px 80px rgba(0,0,0,0.6),
+            0 0 80px rgba(239,68,68,0.08);
           position: relative;
           animation: shell-in 0.65s cubic-bezier(0.22,1,0.36,1) both;
         }
@@ -120,8 +120,8 @@ export default function ChatBox() {
         /* ══ TITLE BAR ══ */
         .cb-titlebar {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 13px 22px;
-          background: rgba(2,3,10,0.6);
+          padding: 16px 24px;
+          background: rgba(15,19,29,0.8);
           border-bottom: 1px solid var(--border);
           position: relative; z-index: 1;
         }
@@ -142,8 +142,9 @@ export default function ChatBox() {
         .cb-dot--green  { background: var(--green);  opacity: 0.45; }
 
         .cb-titlebar-id {
-          font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
-          color: rgba(255,40,40,0.5);
+          font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+          color: rgba(239,68,68,0.7);
+          font-weight: 500;
         }
 
         .cb-titlebar-right {
@@ -179,34 +180,37 @@ export default function ChatBox() {
         .cb-statusbar {
           display: flex; align-items: stretch;
           border-bottom: 1px solid var(--border);
-          background: rgba(3,4,11,0.5);
+          background: rgba(15,19,29,0.5);
+          gap: 0;
         }
 
         .cb-stat {
           flex: 1;
           display: flex; flex-direction: column; align-items: center;
           justify-content: center;
-          padding: 10px 0;
+          padding: 14px 12px;
           border-right: 1px solid var(--border);
-          gap: 3px;
+          gap: 6px;
           transition: background 0.2s ease;
         }
         .cb-stat:last-child { border-right: none; }
-        .cb-stat:hover { background: rgba(255,40,40,0.03); }
+        .cb-stat:hover { background: rgba(239,68,68,0.05); }
 
         .cb-stat-label {
-          font-size: 7px; letter-spacing: 0.32em; text-transform: uppercase;
-          color: var(--dim);
+          font-size: 8px; letter-spacing: 0.32em; text-transform: uppercase;
+          color: rgba(148,163,184,0.65);
+          font-weight: 500;
         }
         .cb-stat-val {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 20px; letter-spacing: 0.06em;
-          color: var(--off-white); line-height: 1;
+          font-size: 24px; letter-spacing: 0.06em;
+          color: rgba(240,245,250,0.92); line-height: 1;
           transition: color 0.2s ease;
+          font-weight: bold;
         }
-        .cb-stat-val.red    { color: var(--red); }
-        .cb-stat-val.green  { color: var(--green); }
-        .cb-stat-val.yellow { color: var(--yellow); }
+        .cb-stat-val.red    { color: #ef4444; }
+        .cb-stat-val.green  { color: #22c55e; }
+        .cb-stat-val.yellow { color: #eab308; }
 
         /* ══ GRAPH SECTION ══ */
         .cb-section {
@@ -216,34 +220,37 @@ export default function ChatBox() {
 
         .cb-section-header {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 10px 22px;
-          border-bottom: 1px solid rgba(255,40,40,0.06);
-          background: rgba(2,3,10,0.35);
+          padding: 12px 24px;
+          border-bottom: 1px solid rgba(239,68,68,0.08);
+          background: rgba(15,19,29,0.4);
         }
         .cb-section-title {
-          display: flex; align-items: center; gap: 9px;
-          font-size: 8px; letter-spacing: 0.32em; text-transform: uppercase;
-          color: rgba(255,40,40,0.45);
+          display: flex; align-items: center; gap: 10px;
+          font-size: 9px; letter-spacing: 0.32em; text-transform: uppercase;
+          color: rgba(239,68,68,0.65);
+          font-weight: 600;
         }
         .cb-section-title::before {
           content: '';
-          width: 3px; height: 3px; border-radius: 50%;
-          background: var(--red-dim);
+          width: 4px; height: 4px; border-radius: 50%;
+          background: var(--red);
         }
         .cb-section-badge {
-          font-size: 7px; letter-spacing: 0.2em; text-transform: uppercase;
-          padding: 2px 8px; border-radius: 100px;
+          font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
+          padding: 4px 10px; border-radius: 100px;
           border: 1px solid var(--border);
-          color: var(--dim);
+          color: rgba(148,163,184,0.65);
+          background: rgba(15,19,29,0.5);
         }
         .cb-section-badge.hot {
-          border-color: rgba(255,40,40,0.22);
-          color: rgba(255,40,40,0.5);
-          background: rgba(255,40,40,0.04);
+          border-color: rgba(239,68,68,0.3);
+          color: rgba(239,68,68,0.75);
+          background: rgba(239,68,68,0.08);
+          font-weight: 600;
         }
 
         .cb-section-body {
-          padding: 20px 22px;
+          padding: 24px;
         }
 
         /* ══ DIVIDER SLASH ══ */
@@ -263,59 +270,61 @@ export default function ChatBox() {
 
         /* ══ INPUT SECTION ══ */
         .cb-input-section {
-          background: rgba(2,3,10,0.45);
+          background: rgba(15,19,29,0.6);
           position: relative;
         }
 
         .cb-input-section::before {
           content: '';
           position: absolute; top: 0; left: 3%; right: 3%; height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,40,40,0.1), transparent);
+          background: linear-gradient(90deg, transparent, rgba(239,68,68,0.15), transparent);
         }
 
         .cb-input-inner {
-          padding: 16px 22px 20px;
+          padding: 20px 24px 24px;
         }
 
         /* ══ FOOTER ══ */
         .cb-footer {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 9px 22px;
-          border-top: 1px solid rgba(255,255,255,0.03);
-          background: rgba(2,3,10,0.6);
+          padding: 12px 24px;
+          border-top: 1px solid rgba(239,68,68,0.1);
+          background: rgba(15,19,29,0.7);
         }
 
         .cb-footer-left {
-          display: flex; align-items: center; gap: 6px;
-          font-size: 7px; letter-spacing: 0.22em; text-transform: uppercase;
-          color: var(--dim);
+          display: flex; align-items: center; gap: 8px;
+          font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase;
+          color: rgba(148,163,184,0.55);
+          font-weight: 500;
         }
         .cb-footer-left::before {
           content: '';
-          width: 10px; height: 1px;
-          background: linear-gradient(90deg, var(--red-dim), transparent);
+          width: 12px; height: 1px;
+          background: linear-gradient(90deg, rgba(239,68,68,0.5), transparent);
         }
 
         .cb-footer-right {
-          font-size: 7px; letter-spacing: 0.18em;
-          color: rgba(130,122,108,0.2);
+          font-size: 8px; letter-spacing: 0.18em;
+          color: rgba(148,163,184,0.45);
         }
 
         /* ══ EMPTY GRAPH STATE ══ */
         .cb-graph-empty {
           display: flex; flex-direction: column; align-items: center;
-          justify-content: center; gap: 10px;
-          padding: 36px 0;
+          justify-content: center; gap: 12px;
+          padding: 48px 24px;
         }
         .cb-graph-empty-icon {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 32px; letter-spacing: 0.1em;
-          color: rgba(255,40,40,0.1);
+          font-size: 36px; letter-spacing: 0.1em;
+          color: rgba(239,68,68,0.18);
           line-height: 1;
         }
         .cb-graph-empty-text {
-          font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase;
-          color: var(--dim);
+          font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+          color: rgba(148,163,184,0.5);
+          font-weight: 500;
         }
       `}</style>
 
