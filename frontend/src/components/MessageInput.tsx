@@ -16,7 +16,7 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
         const token = await getAccessTokenSilently()
 
         const response = await fetch(
-            "http://localhost:8000/api/agent/run-task-stream",
+            "http://127.0.0.1:8000/api/agent/run-task-stream",
             {
                 method: "POST",
                 headers: {
@@ -71,10 +71,10 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
 
     return (
 
-        <div className="flex gap-2">
+        <div className="flex gap-3 w-full">
 
             <input
-                className="flex-1 p-2 text-black rounded"
+                className="flex-1 px-4 py-3 bg-slate-700 text-slate-100 placeholder-slate-400 rounded-lg border border-slate-600 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-30 transition-all"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Ask AgentOS..."
@@ -82,7 +82,7 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
 
             <button
                 onClick={sendMessage}
-                className="bg-blue-500 px-4 rounded"
+                className="px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors duration-200"
             >
                 Send
             </button>
