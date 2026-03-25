@@ -45,9 +45,9 @@ function LoginGate() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap');
         :root {
-          --red: #ff2828; --red-dim: #8c1010;
-          --void: #02030a; --off-white: rgba(238,232,222,0.92);
-          --muted: rgba(180,172,158,0.45);
+          --red: #ef4444; --red-dim: #7f1d1d;
+          --void: #0f1419; --off-white: rgba(240,245,250,0.95);
+          --muted: rgba(203,213,225,0.65);
         }
         .gate-root {
           height: 100vh; display: flex; flex-direction: column;
@@ -59,15 +59,15 @@ function LoginGate() {
           content: '';
           position: absolute; inset: 0; pointer-events: none;
           background:
-            radial-gradient(ellipse 80% 70% at 50% 0%, rgba(255,40,40,0.1) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 60% at 50% 100%, rgba(200,20,20,0.07) 0%, transparent 55%);
+            radial-gradient(ellipse 80% 70% at 50% 0%, rgba(239,68,68,0.12) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 60% at 50% 100%, rgba(192,20,20,0.08) 0%, transparent 55%);
         }
         .gate-root::after {
           content: '';
           position: absolute; inset: 0; pointer-events: none;
           background-image:
-            linear-gradient(rgba(255,40,40,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,40,40,0.03) 1px, transparent 1px);
+            linear-gradient(rgba(239,68,68,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(239,68,68,0.05) 1px, transparent 1px);
           background-size: 52px 52px;
           mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
         }
@@ -83,7 +83,7 @@ function LoginGate() {
         .gate-slash {
           font-family: 'Bebas Neue', sans-serif;
           font-size: 11px; letter-spacing: 0.5em;
-          background: linear-gradient(90deg, var(--red), rgba(255,40,40,0.4));
+          background: linear-gradient(90deg, var(--red), rgba(239,68,68,0.5));
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
           margin-bottom: 10px;
@@ -102,8 +102,8 @@ function LoginGate() {
           content: '';
           display: block;
           height: 3px;
-          background: linear-gradient(90deg, transparent 0%, var(--red-dim) 15%, var(--red) 45%, rgba(255,80,80,0.9) 55%, var(--red-dim) 85%, transparent 100%);
-          box-shadow: 0 0 16px rgba(255,40,40,0.6);
+          background: linear-gradient(90deg, transparent 0%, var(--red-dim) 15%, var(--red) 45%, rgba(239,68,68,0.9) 55%, var(--red-dim) 85%, transparent 100%);
+          box-shadow: 0 0 16px rgba(239,68,68,0.6);
           margin-top: 6px;
         }
         .gate-tagline {
@@ -111,7 +111,7 @@ function LoginGate() {
           font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
           color: var(--muted); text-align: center;
         }
-        .gate-corner { position: fixed; width: 22px; height: 22px; pointer-events: none; opacity: 0.4; }
+        .gate-corner { position: fixed; width: 22px; height: 22px; pointer-events: none; opacity: 0.5; }
         .gate-corner--tl { top: 14px; left: 14px;  border-top: 1.5px solid var(--red); border-left: 1.5px solid var(--red); }
         .gate-corner--tr { top: 14px; right: 14px; border-top: 1.5px solid var(--red); border-right: 1.5px solid var(--red); }
         .gate-corner--bl { bottom: 14px; left: 14px;  border-bottom: 1.5px solid var(--red); border-left: 1.5px solid var(--red); }
@@ -159,14 +159,14 @@ export default function Home() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap');
         :root {
-          --void:   #02030a;
-          --deep:   #06070f;
-          --surface:#0b0c18;
-          --red:    #ff2828;
-          --red-dim:#8c1010;
-          --off-white: rgba(238,232,222,0.92);
-          --muted:  rgba(180,172,158,0.45);
-          --dim:    rgba(130,122,108,0.25);
+          --void:   #0f1419;
+          --deep:   #1a1f2e;
+          --surface:#252d3d;
+          --red:    #ef4444;
+          --red-dim:#7f1d1d;
+          --off-white: rgba(240,245,250,0.95);
+          --muted:  rgba(203,213,225,0.65);
+          --dim:    rgba(148,163,184,0.48);
         }
 
         .home-root {
