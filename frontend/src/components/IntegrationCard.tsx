@@ -23,7 +23,7 @@ export default function IntegrationCard({service}:any){
               
               // Tell backend to mark it as connected (Token Vault is the real source)
               const auth0Token = await getAccessTokenSilently()
-              const res = await fetch(`http://localhost:8000/api/integrations/connect/${service.service}`, {
+              const res = await fetch(`http://127.0.0.1:8000/api/integrations/connect/${service.service}`, {
                   method: "POST",
                   headers: {
                       "Authorization": `Bearer ${auth0Token}`,
@@ -46,7 +46,7 @@ export default function IntegrationCard({service}:any){
   const disconnect = async () => {
       try {
           const auth0Token = await getAccessTokenSilently()
-          const res = await fetch(`http://localhost:8000/api/integrations/disconnect/${service.service}`, {
+          const res = await fetch(`http://127.0.0.1:8000/api/integrations/disconnect/${service.service}`, {
               method: "DELETE",
               headers: { "Authorization": `Bearer ${auth0Token}` }
           })
@@ -64,7 +64,7 @@ export default function IntegrationCard({service}:any){
 
     try {
         const auth0Token = await getAccessTokenSilently()
-        const res = await fetch(`http://localhost:8000/api/integrations/connect/${service.service}`, {
+        const res = await fetch(`http://127.0.0.1:8000/api/integrations/connect/${service.service}`, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${auth0Token}`,
@@ -82,39 +82,41 @@ export default function IntegrationCard({service}:any){
   }
 
   return(
+    <div className="elevated flex flex-col h-full border border-slate-600 dark:border-slate-500 rounded-lg bg-slate-800 p-6 relative overflow-hidden group hover:border-slate-400 transition-all">
+      
+      {/* Subtle top glow based on connection status */}
+      <div className={`absolute top-0 left-0 right-0 h-1.5 ${service.connected ? 'bg-emerald-500' : 'bg-slate-700'}`} />
 
-    <div className="bg-white p-4 rounded shadow">
-
-      <h3 className="font-bold text-gray-800">
+      <h3 className="font-display font-semibold text-xl text-slate-100 text-balance pr-12 mt-2">
         {service.name || service.service}
       </h3>
 
-      <div className="mb-3">
+      <div className="mt-4 mb-4 flex items-center gap-2">
         {service.connected ? (
-          <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-green-700 bg-green-100 px-2 py-0.5 rounded-full border border-green-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_#22c55e]"></span> 
+          <span className="inline-flex items-center gap-2 text-xs uppercase font-bold tracking-wider text-emerald-300 bg-emerald-500/15 px-3 py-1.5 rounded-full border border-emerald-500/30">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#4ade80] animate-pulse"></span> 
             Vault Connected
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> 
+          <span className="inline-flex items-center gap-2 text-xs uppercase font-bold tracking-wider text-slate-400 bg-slate-700/50 px-3 py-1.5 rounded-full border border-slate-600">
+            <span className="w-2 h-2 rounded-full bg-slate-500"></span> 
             Disconnected
           </span>
         )}
       </div>
 
       {service.description && (
-        <p className="text-xs text-gray-500 mb-4 leading-relaxed border-l-2 border-gray-200 pl-2">
+        <p className="text-sm text-slate-300 mb-6 leading-relaxed flex-grow">
           {service.description}
         </p>
       )}
 
       {service.connected && service.scopes && service.scopes.length > 0 && (
-        <div className="mb-4">
-          <p className="text-[9px] uppercase tracking-widest text-gray-400 mb-1 font-semibold">Explicit Scopes Granted</p>
-          <div className="flex flex-wrap gap-1">
+        <div className="mb-6 bg-slate-700/50 border border-slate-600 px-4 py-3 rounded-md">
+          <p className="text-xs uppercase tracking-widest text-slate-400 mb-3 font-semibold">Explicit Scopes Granted</p>
+          <div className="flex flex-wrap gap-2">
             {service.scopes.map((scope: string) => (
-              <span key={scope} className="text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded">
+              <span key={scope} className="text-xs font-mono bg-blue-500/15 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded-md">
                 {scope}
               </span>
             ))}
@@ -122,45 +124,55 @@ export default function IntegrationCard({service}:any){
         </div>
       )}
 
-      {!service.connected && !isPrompting && (
-        <button
-          onClick={connect}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded shadow-sm transition-colors"
-        >
-          Authorize Vault Access
-        </button>
-      )}
+      <div className="mt-auto pt-6 relative z-10">
+        {!service.connected && !isPrompting && (
+          <button
+            onClick={connect}
+            className="w-full bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-md transition-all transform hover:shadow-lg active:shadow-sm"
+          >
+            Authorize Vault Access
+          </button>
+        )}
 
-      {service.connected && (
-        <button
-          onClick={disconnect}
-          className="w-full bg-white hover:bg-red-50 text-red-600 text-xs font-semibold px-4 py-2 rounded border border-red-200 hover:border-red-300 transition-colors flex items-center justify-center gap-2"
-        >
-          Revoke Consent & Purge Token
-        </button>
-      )}
+        {service.connected && (
+          <button
+            onClick={disconnect}
+            className="w-full bg-transparent hover:bg-red-600/20 text-red-400 text-sm font-semibold px-4 py-2.5 rounded-lg border border-red-500/40 hover:border-red-400 transition-colors flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Revoke Consent & Purge Token
+          </button>
+        )}
 
-      {!service.connected && isPrompting && (
-          <div className="mt-3 flex gap-2">
-            <input 
-                type="text" 
-                placeholder="Enter Vault Token Override..." 
-                value={tokenInput} 
-                onChange={(e) => setTokenInput(e.target.value)} 
-                className="border p-1.5 rounded text-xs w-full text-black flex-1 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                autoFocus
-            />
-            <button 
-                onClick={submitToken} 
-                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs shrink-0 font-semibold transition-colors"
-            >
-                Confirm
-            </button>
-          </div>
-      )}
-
+        {!service.connected && isPrompting && (
+            <div className="flex flex-col gap-3">
+              <input 
+                  type="text" 
+                  placeholder="Enter Vault Token Override..." 
+                  value={tokenInput} 
+                  onChange={(e) => setTokenInput(e.target.value)} 
+                  className="w-full font-mono text-sm bg-slate-700 text-slate-100 placeholder-slate-400 border border-slate-600 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  autoFocus
+              />
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setIsPrompting(false)} 
+                  className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                    onClick={submitToken} 
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-all shadow-md"
+                >
+                    Confirm
+                </button>
+              </div>
+            </div>
+        )}
+      </div>
     </div>
-
   )
-
 }
