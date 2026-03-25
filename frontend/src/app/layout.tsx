@@ -60,29 +60,29 @@ export default function RootLayout({
              FONTS & TOKENS
           ══════════════════════════════════════════ */
           :root {
-            --void:        #03040a;
-            --abyss:       #060810;
-            --deep:        #090c18;
-            --surface:     #0d1020;
+            --void:        #0f1419;
+            --abyss:       #1a1f2e;
+            --deep:        #252d3d;
+            --surface:     #2d3647;
 
-            --red-hot:     #ff2d2d;
-            --red-mid:     #cc1f1f;
-            --red-dim:     #7a1010;
-            --red-ember:   rgba(255,45,45,0.08);
+            --red-hot:     #ef4444;
+            --red-mid:     #dc2626;
+            --red-dim:     #7f1d1d;
+            --red-ember:   rgba(239,68,68,0.12);
 
             --white-bright: #ffffff;
-            --white-base:   rgba(240,238,235,0.92);
-            --white-muted:  rgba(200,196,190,0.55);
-            --white-dim:    rgba(155,150,142,0.3);
+            --white-base:   rgba(240,245,250,0.95);
+            --white-muted:  rgba(203,213,225,0.65);
+            --white-dim:    rgba(148,163,184,0.48);
 
             --font-display: 'Bebas Neue', 'Impact', sans-serif;
             --font-mono:    'DM Mono', 'Courier New', monospace;
 
-            --border-red:   rgba(255,45,45,0.18);
-            --border-white: rgba(255,255,255,0.06);
+            --border-red:   rgba(239,68,68,0.22);
+            --border-white: rgba(255,255,255,0.08);
 
-            --shadow-red:   0 0 40px rgba(255,45,45,0.15), 0 0 80px rgba(255,45,45,0.05);
-            --shadow-deep:  0 32px 80px rgba(0,0,0,0.8);
+            --shadow-red:   0 0 40px rgba(239,68,68,0.2), 0 0 80px rgba(239,68,68,0.08);
+            --shadow-deep:  0 32px 80px rgba(0,0,0,0.7);
           }
 
           /* ══════════════════════════════════════════
@@ -114,8 +114,8 @@ export default function RootLayout({
             position: absolute;
             inset: 0;
             background-image:
-              linear-gradient(rgba(255,45,45,0.04) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,45,45,0.04) 1px, transparent 1px);
+              linear-gradient(rgba(239,68,68,0.06) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(239,68,68,0.06) 1px, transparent 1px);
             background-size: 48px 48px;
             mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 30%, transparent 100%);
           }
@@ -126,7 +126,7 @@ export default function RootLayout({
             top: -20%; left: -10%;
             width: 70vw; height: 70vh;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,45,45,0.12) 0%, transparent 65%);
+            background: radial-gradient(circle, rgba(239,68,68,0.15) 0%, transparent 65%);
             animation: glow-breathe 6s ease-in-out infinite;
           }
 
@@ -136,7 +136,7 @@ export default function RootLayout({
             bottom: -15%; right: -5%;
             width: 50vw; height: 60vh;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(220,30,30,0.09) 0%, transparent 65%);
+            background: radial-gradient(circle, rgba(220,38,38,0.1) 0%, transparent 65%);
             animation: glow-breathe 8s ease-in-out infinite reverse;
           }
 
@@ -146,7 +146,7 @@ export default function RootLayout({
             top: 30%; left: 30%;
             width: 40vw; height: 40vh;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,80,80,0.04) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(239,68,68,0.06) 0%, transparent 60%);
             animation: glow-drift 12s ease-in-out infinite;
           }
 
@@ -181,8 +181,8 @@ export default function RootLayout({
             inset: 0;
             background: radial-gradient(ellipse 100% 100% at 50% 50%,
               transparent 40%,
-              rgba(3,4,10,0.6) 80%,
-              rgba(3,4,10,0.95) 100%
+              rgba(15,20,30,0.5) 80%,
+              rgba(15,20,30,0.9) 100%
             );
           }
 
@@ -197,13 +197,13 @@ export default function RootLayout({
               transparent 0%,
               var(--red-dim) 10%,
               var(--red-hot) 35%,
-              #ff6060 50%,
+              #f87171 50%,
               var(--red-hot) 65%,
               var(--red-dim) 90%,
               transparent 100%
             );
             z-index: 1000;
-            box-shadow: 0 0 20px rgba(255,45,45,0.8), 0 0 60px rgba(255,45,45,0.3);
+            box-shadow: 0 0 20px rgba(239,68,68,0.9), 0 0 60px rgba(239,68,68,0.35);
             animation: line-pulse 3s ease-in-out infinite;
           }
 
