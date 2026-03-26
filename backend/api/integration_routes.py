@@ -40,16 +40,36 @@ def list_integrations(user=Depends(get_current_user)):
         }
     }
 
-    for s in services:
-        token = get_integration_token(user, s)
-        info = scopes_map.get(s, {})
-        result.append({
-            "service": s,
-            "connected": token is not None,
-            "name": info.get("name", s),
-            "scopes": info.get("scopes", []),
-            "description": info.get("description", "")
-        })
+    from database.db import SessionLocal
+    from database.models import Integration
+
+    db = SessionLocal()
+    try:
+        for s in services:
+            info = scopes_map.get(s, {})
+            integration = db.query(Integration).filter(Integration.user_id == user["sub"], Integration.service == s).first()
+            token = get_integration_token(user, s)
+
+            consent_timestamp = integration.connected_at.isoformat() if integration and integration.connected_at else None
+            granted_scopes = [
+                {
+                    "scope": sc,
+                    "description": "Allowed" if sc in info.get("scopes", []) else "Extra"
+                }
+                for sc in info.get("scopes", [])
+            ]
+
+            result.append({
+                "service": s,
+                "connected": token is not None,
+                "name": info.get("name", s),
+                "scopes": info.get("scopes", []),
+                "granted_scopes": granted_scopes,
+                "consent_timestamp": consent_timestamp,
+                "description": info.get("description", "")
+            })
+    finally:
+        db.close()
 
     return result
 

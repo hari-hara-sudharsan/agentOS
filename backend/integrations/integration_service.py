@@ -1,9 +1,47 @@
 import os
 import re
+import time
 import requests
+from requests.exceptions import RequestException
 from database.db import SessionLocal
 from database.models import Integration
 from fastapi import HTTPException
+
+
+from collections import deque
+
+TOKEN_VAULT_CALLS = deque()
+
+
+def rate_limited(max_per_minute=30):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            now = time.time()
+            while TOKEN_VAULT_CALLS and TOKEN_VAULT_CALLS[0] < now - 60:
+                TOKEN_VAULT_CALLS.popleft()
+            if len(TOKEN_VAULT_CALLS) >= max_per_minute:
+                raise HTTPException(429, detail="Token Vault call rate limit exceeded")
+            TOKEN_VAULT_CALLS.append(now)
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def retry(tries=3, backoff=0.3, allowed_exceptions=(RequestException,)):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            attempts = 0
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except allowed_exceptions as exc:
+                    attempts += 1
+                    if attempts >= tries:
+                        raise
+                    sleep_time = backoff * (2 ** (attempts - 1))
+                    time.sleep(sleep_time)
+        return wrapper
+    return decorator
 
 
 SERVICE_CONNECTION_MAP = {
@@ -23,6 +61,8 @@ SERVICE_SCOPE_MAP = {
 JWT_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
 
 
+@rate_limited(max_per_minute=30)
+@retry(tries=3, backoff=0.3)
 def get_management_token():
     domain = os.getenv("AUTH0_DOMAIN")
     client_id = os.getenv("AUTH0_CLIENT_ID")
@@ -54,6 +94,8 @@ def _is_raw_token(value: str) -> bool:
     return False
 
 
+@rate_limited(max_per_minute=30)
+@retry(tries=3, backoff=0.3)
 def get_connection_reference(user_context, service):
     """Return non-sensitive provider linkage reference from Auth0 identity."""
     connection_name = SERVICE_CONNECTION_MAP.get(service, service)
@@ -78,6 +120,8 @@ def get_connection_reference(user_context, service):
     return None
 
 
+@rate_limited(max_per_minute=30)
+@retry(tries=3, backoff=0.3)
 def get_token_from_vault(user_context, service):
     """Token Vault exchange path (no raw tokens from local DB)."""
     connection_name = SERVICE_CONNECTION_MAP.get(service, service)
@@ -137,6 +181,8 @@ def get_token_from_vault(user_context, service):
     return None
 
 
+@rate_limited(max_per_minute=30)
+@retry(tries=3, backoff=0.3)
 def revoke_token_from_vault(user_context, connection_name):
     """Revoke linked identity from Auth0 to remove any provider tokens."""
     user_id = user_context["sub"]

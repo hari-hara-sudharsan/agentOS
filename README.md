@@ -1,6 +1,14 @@
 # AgentOS: Secure Sovereign AI with Auth0 Token Vault
 
-## 📺 Live Demo Video (3 mins)
+## �️ Submission Period Updates
+
+- 2026-03-26: Hardened token flow to strict Auth0 Token Vault no-raw-token storage.
+- 2026-03-26: Added official federated connection token exchange grant and step-up/CIBA support.
+- 2026-03-26: Added integration metadata (`consent_timestamp`, `granted_scopes`) and explicit revocation history.
+- 2026-03-26: Added operational dashboards (`/integrations`, `/approvals`) and interactive resume flows.
+- 2026-03-26: Introduced retry+exponential backoff for all Token Vault calls for reliability.
+
+## �📺 Live Demo Video (3 mins)
 
 **[Insert Video Link Here]** _(Starting with a 10-second TL;DR of what problem this solves!)_
 
@@ -16,7 +24,21 @@ AgentOS acts as an **intermediary agent** that keeps **OpenClaw** (or any local 
 - Raw token inputs from clients are rejected with clear `400` errors.
 - Revocation reliably deletes identity from Auth0 (`/api/v2/users/{id}/identities/{provider}/{user_id}`).
 
-## �💡 Insights from Building
+## 🏗️ Architecture (Mermaid)
+
+```mermaid
+flowchart LR
+    U[User] -->|Login| A(Auth0 Login)
+    A -->|ID Token| TV[Token Vault]
+    TV -->|Federated exchange| AT[Agent Toolkit]
+    AT -->|restricts via policy| OC[OpenClaw (local AI sandbox)]
+    OC -->|calls| E[External APIs]
+
+    AT -->|requests step-up| SU[Step-Up / CIBA]
+    SU -->|approval response| AT
+```
+
+## 💡 Insights from Building
 
 - _“We discovered that current agent frameworks lack explicit permission boundaries for long-running processes—an agent either executes an action immediately with raw tokens, or fails. Here’s the new pattern we built using Token Vault that solves it: an **Async CIBA flow** that parks the execution thread, signals the UI, and awaits human Step-Up Auth before dynamically exchanging tokens.”_
 - _“Users often don't understand what scopes an AI has → our dedicated User Dashboard makes it completely transparent by mapping obscure API scopes to plain-english boundaries with a one-click **Revoke Consent** button.”_\* _“Revealed gap: agents need explicit delayed human consent for high-risk tool execution. Solved with Token Vault + step-up/CIBA-style pending approval, with in-stream agent pause and manual resume.”_

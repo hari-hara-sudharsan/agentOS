@@ -111,16 +111,23 @@ export default function IntegrationCard({service}:any){
         </p>
       )}
 
-      {service.connected && service.scopes && service.scopes.length > 0 && (
-        <div className="mb-6 bg-slate-700/50 border border-slate-600 px-4 py-3 rounded-md">
+      {service.connected && service.granted_scopes && service.granted_scopes.length > 0 && (
+        <div className="mb-4 bg-slate-700/50 border border-slate-600 px-4 py-3 rounded-md">
           <p className="text-xs uppercase tracking-widest text-slate-400 mb-3 font-semibold">Explicit Scopes Granted</p>
-          <div className="flex flex-wrap gap-2">
-            {service.scopes.map((scope: string) => (
-              <span key={scope} className="text-xs font-mono bg-blue-500/15 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded-md">
-                {scope}
+          <div className="flex flex-col gap-2">
+            {service.granted_scopes.map((scope: any) => (
+              <span key={scope.scope} className="text-xs font-mono bg-blue-500/15 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded-md">
+                {scope.scope} - {scope.description}
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {service.connected && service.consent_timestamp && (
+        <div className="mb-6 bg-slate-700/50 border border-slate-600 px-4 py-3 rounded-md">
+          <p className="text-xs uppercase tracking-widest text-slate-400 mb-3 font-semibold">Consent Timestamp</p>
+          <p className="text-xs text-slate-200 font-mono">{new Date(service.consent_timestamp).toLocaleString()}</p>
         </div>
       )}
 
