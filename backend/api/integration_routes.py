@@ -1,6 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from security.auth0_client import get_current_user
-from integrations.integration_service import save_integration, get_integration_token
+from integrations.integration_service import (
+    save_integration,
+    get_integration_token,
+    get_connection_reference,
+    SERVICE_CONNECTION_MAP,
+    _is_raw_token
+)
 
 router = APIRouter()
 
@@ -8,7 +14,6 @@ router = APIRouter()
 @router.get("/")
 def list_integrations(user=Depends(get_current_user)):
 
-    user_id = user["sub"]
     services = ["gmail", "slack", "drive", "calendar"]
     result = []
     
@@ -48,23 +53,27 @@ def list_integrations(user=Depends(get_current_user)):
 
     return result
 
+
 from pydantic import BaseModel
 
 class TokenRequest(BaseModel):
-    token: str
+    token: str | None = None
+
 
 @router.post("/connect/{service}")
 def connect_service(service: str, req: TokenRequest, user=Depends(get_current_user)):
-
     user_id = user["sub"]
 
-    save_integration(
-        user_id,
-        service,
-        req.token
-    )
+    if req.token and _is_raw_token(req.token):
+        raise HTTPException(400, detail="Raw tokens are not accepted, use vault exchange flow and store non-sensitive references only.")
 
-    return {"status": f"{service}_connected"}
+    connection_ref = get_connection_reference(user, service)
+    if not connection_ref:
+        raise HTTPException(400, detail="Unable to obtain Auth0 connection reference from Vault. Ensure you have completed OAuth flow and granted scopes.")
+
+    save_integration(user_id, service, connection_ref)
+
+    return {"status": f"{service}_connected", "reference": connection_ref}
 
 
 @router.delete("/disconnect/{service}")

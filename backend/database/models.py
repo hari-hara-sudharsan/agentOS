@@ -26,6 +26,7 @@ class Integration(Base):
 
     service = Column(String)
 
+    # Non-sensitive linkage reference (Auth0 identity provider reference), never raw access/refresh tokens.
     token_reference = Column(String)
 
     connected_at = Column(DateTime, default=datetime.utcnow)
