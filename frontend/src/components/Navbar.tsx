@@ -27,6 +27,10 @@ export default function Navbar() {
           Activity
           <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-amber-300 group-hover:w-full transition-all duration-300"></span>
         </Link>
+        <Link href="/approvals" className="hover:text-amber-300 transition-colors duration-300 relative group font-medium">
+          Approvals
+          <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-amber-300 group-hover:w-full transition-all duration-300"></span>
+        </Link>
 
         <div className="h-6 w-px bg-amber-700 mx-3"></div>
 

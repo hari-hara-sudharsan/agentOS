@@ -57,8 +57,13 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
                 if (event.event === "step_failed")
                     updateStep(event.tool, "failed", event.error)
 
-                if (event.event === "awaiting_consent")
-                    updateStep(event.tool, "awaiting_consent", { task: event.task, error: "SECURITY HALT: This high-stakes action requires explicit human-in-the-loop consent. Please approve to continue." })
+                if (event.event === "awaiting_consent" || event.event === "pending_approval")
+                    updateStep(event.tool, "awaiting_consent", {
+                        task: event.task,
+                        approval_id: event.approval_id,
+                        binding_message: event.binding_message,
+                        error: "SECURITY HALT: This high-stakes action requires explicit human-in-the-loop consent. Please approve to continue."
+                    })
 
                 if (event.event === "execution_finished")
                     setGoal((prev: string) => prev + " (Completed)")
