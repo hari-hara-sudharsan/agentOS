@@ -7,7 +7,7 @@ import requests
 from security.auth0_client import check_mfa_and_consent
 
 def upload_to_drive(user_context, params):
-    check_mfa_and_consent(user_context, params)
+    check_mfa_and_consent(user_context, params, tool="upload_to_drive")
 
     token = get_integration_token(
         user_context,

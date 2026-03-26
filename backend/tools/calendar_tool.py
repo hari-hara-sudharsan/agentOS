@@ -7,7 +7,7 @@ from security.auth0_client import check_mfa_and_consent
 
 def create_calendar_event(user_context, params):
     # Enforce Scoped / Least-Privilege Access Enforcement
-    check_mfa_and_consent(user_context, params)
+    check_mfa_and_consent(user_context, params, tool="create_calendar_event")
 
     token = get_integration_token(
         user_context,

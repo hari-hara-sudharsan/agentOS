@@ -6,7 +6,7 @@ import requests
 from security.auth0_client import check_mfa_and_consent
 
 def send_slack_message(user_context, params, memory=None):
-    check_mfa_and_consent(user_context, params)
+    check_mfa_and_consent(user_context, params, tool="send_slack_message")
 
     token = get_integration_token(
         user_context,
