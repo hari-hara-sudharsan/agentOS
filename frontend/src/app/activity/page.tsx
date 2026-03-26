@@ -54,7 +54,7 @@ export default function Activity() {
     async function loadData() {
       try {
         const token = await getAccessTokenSilently()
-        const res = await fetch("http://localhost:8000/api/activity", {
+        const res = await fetch("http://127.0.0.1:8000/api/activity", {
           headers: { Authorization: `Bearer ${token}` },
         })
         const jsonData = await res.json()
