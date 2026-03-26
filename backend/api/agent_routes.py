@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from utils.rate_limiter import limiter
 
-from security.auth0_client import get_current_user
+from security.auth0_client import get_current_user, ConsentRequiredException
 from executor.task_executor import TaskExecutor
 from agents.planner_agent import create_plan
 from registry.tool_registry import tool_registry
@@ -63,24 +63,28 @@ async def stream_execution(plan, executor, user):
                 "result": result
             }) + "\n"
 
-        except Exception as e:
-            
-            error_str = str(e)
+        except ConsentRequiredException as ce:
             from database.activity_logger import log_activity
             user_id = user.get("sub", "system")
 
-            if "step_up_required" in error_str:
-                log_activity(
-                    user_id,
-                    action=f"awaiting_consent:{tool}",
-                    status="pending"
-                )
-                yield json.dumps({
-                    "event": "awaiting_consent",
-                    "tool": tool,
-                    "task": task
-                }) + "\n"
-                break
+            log_activity(
+                user_id,
+                action=f"awaiting_consent:{tool}",
+                status="pending"
+            )
+            yield json.dumps({
+                "event": "pending_approval",
+                "tool": tool,
+                "task": task,
+                "approval_id": ce.approval_id,
+                "binding_message": ce.binding_message
+            }) + "\n"
+            break
+
+        except Exception as e:
+            error_str = str(e)
+            from database.activity_logger import log_activity
+            user_id = user.get("sub", "system")
 
             if "Role" in error_str and "cannot execute tool" in error_str or "Tool not allowed" in error_str:
                 # Log blocked tool execution
@@ -137,9 +141,13 @@ def resume_agent_task(
     task = resume_req.task
     if "params" not in task:
         task["params"] = {}
-    
+
     # Indicate to the backend that consent has been confirmed
     task["params"]["consent_granted"] = True
+    if "approval_id" in task:
+        task["params"]["approval_id"] = task["approval_id"]
+    elif task.get("params", {}).get("approval_id"):
+        task["params"]["approval_id"] = task["params"]["approval_id"]
     
     try:
         result = task_executor.router.execute_tool(
