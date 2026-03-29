@@ -83,6 +83,24 @@ async def stream_execution(plan, executor, user):
 
         except Exception as e:
             error_str = str(e)
+            
+            if "pending_approval_required" in error_str or e.__class__.__name__ == "ConsentRequiredException":
+                from database.activity_logger import log_activity
+                user_id = user.get("sub", "system")
+                log_activity(
+                    user_id,
+                    action=f"awaiting_consent:{tool}",
+                    status="pending"
+                )
+                yield json.dumps({
+                    "event": "pending_approval",
+                    "tool": tool,
+                    "task": task,
+                    "approval_id": getattr(e, "approval_id", None),
+                    "binding_message": getattr(e, "binding_message", None)
+                }) + "\n"
+                break
+                
             from database.activity_logger import log_activity
             user_id = user.get("sub", "system")
 
@@ -97,7 +115,7 @@ async def stream_execution(plan, executor, user):
             yield json.dumps({
                 "event": "step_failed",
                 "tool": tool,
-                "error": error_str
+                "error": error_str + f" [CLASS: {e.__class__.__name__}]"
             }) + "\n"
 
         await asyncio.sleep(0.2)
