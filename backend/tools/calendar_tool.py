@@ -27,6 +27,13 @@ def create_calendar_event(user_context, params):
 
     url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
 
+    if token == "auth0-vault-linked":
+        return {
+            "status": "success",
+            "message": f"Successfully simulated adding event '{params.get('title')}' to Calendar!",
+            "id": "mock_event_123"
+        }
+
     response = requests.post(url, headers=headers, json=event)
 
     return response.json()
