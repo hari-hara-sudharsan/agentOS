@@ -1,6 +1,7 @@
 ROLES = {
     "admin": [
         "read_gmail",
+        "send_gmail",
         "send_slack_message",
         "upload_to_drive",
         "create_calendar_event",
@@ -9,12 +10,14 @@ ROLES = {
     ],
     "power_user": [
         "read_gmail",
+        "send_gmail",
         "send_slack_message",
         "create_calendar_event",
         "summarize_text"
     ],
     "basic_user": [
         "read_gmail",
+        "send_gmail",
         "summarize_text"
     ]
 }
