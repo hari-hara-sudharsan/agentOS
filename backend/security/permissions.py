@@ -1,5 +1,6 @@
 ALLOWED_ACTIONS = [
     "read_gmail",
+    "send_gmail",
     "send_slack_message",
     "create_calendar_event",
     "upload_to_drive",
