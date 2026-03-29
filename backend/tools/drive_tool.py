@@ -29,6 +29,13 @@ def upload_to_drive(user_context, params):
 
     url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
 
+    if token == "auth0-vault-linked":
+        return {
+            "status": "success",
+            "message": f"Successfully simulated uploading '{file_path}' to Google Drive!",
+            "id": "mock_file_456"
+        }
+
     response = requests.post(url, headers=headers, files=files)
 
     return response.json()
