@@ -5,7 +5,7 @@ router = APIRouter()
 
 START_TIME = time.time()
 
-@router.get("/")
+@router.get("")
 def health():
 
     uptime = time.time() - START_TIME
