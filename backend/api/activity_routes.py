@@ -8,7 +8,7 @@ router = APIRouter()
 from database.db import SessionLocal
 from database.models import AgentAnalytics
 
-@router.get("/")
+@router.get("")
 def get_activity_log(user=Depends(get_current_user)):
 
     user_id = user["sub"]
