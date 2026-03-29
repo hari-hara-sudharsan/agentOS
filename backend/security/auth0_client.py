@@ -29,6 +29,10 @@ def create_pending_approval(user_context, tool, params):
     elif tool == "upload_to_drive":
         destination = params.get("file_path", "<path>")
         action = f"Upload file to Drive at {destination}"
+    elif tool == "send_gmail":
+        to = params.get("to", "unknown")
+        subject = params.get("subject", "No subject")
+        action = f"Send email to {to} with subject '{subject}'"
     else:
         action = f"Execute {tool}"
 
