@@ -27,7 +27,8 @@ def summarize_text(user_context, params, memory=None):
                     {"role": "system", "content": "Summarize the following text."},
                     {"role": "user", "content": str(text)[:4000]}
                 ]
-            }
+            },
+            timeout=15
         )
         data = response.json()
         if "choices" in data:
