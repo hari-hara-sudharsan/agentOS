@@ -12,7 +12,9 @@ interface Approval {
   approved: boolean
 }
 
-export default function Approvals() {
+import { withAuthenticationRequired } from "@auth0/auth0-react"
+
+function Approvals() {
   const [approvals, setApprovals] = useState<Approval[]>([])
   const [loading, setLoading] = useState(true)
   const { getAccessTokenSilently } = useAuth0()
@@ -20,13 +22,13 @@ export default function Approvals() {
   async function loadApprovals() {
     try {
       const token = await getAccessTokenSilently()
-      const res = await fetch("http://127.0.0.1:8000/api/approvals", {
+      const res = await fetch("http://localhost:8000/api/approvals", {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
       setApprovals(Array.isArray(data) ? data : [])
-    } catch (e) {
-      console.error(e)
+    } catch (e: any) {
+      console.error("Failed to load approvals", e)
     } finally {
       setLoading(false)
     }
@@ -42,7 +44,7 @@ export default function Approvals() {
   async function approve(id: string) {
     try {
       const token = await getAccessTokenSilently()
-      await fetch(`http://127.0.0.1:8000/api/approvals/approve/${id}`, {
+      await fetch(`http://localhost:8000/api/approvals/approve/${id}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -50,7 +52,7 @@ export default function Approvals() {
       })
       loadApprovals()
     } catch (e) {
-      console.error(e)
+      console.error("Failed to approve", e)
     }
   }
 
@@ -82,3 +84,14 @@ export default function Approvals() {
     </div>
   )
 }
+
+export default withAuthenticationRequired(Approvals, {
+  onRedirecting: () => (
+    <div className="min-h-screen flex items-center justify-center bg-[#090d14]">
+      <div className="animate-pulse flex flex-col items-center">
+        <div className="h-12 w-12 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin mb-4"></div>
+        <p className="text-slate-400 font-mono text-sm tracking-widest uppercase">Authenticating...</p>
+      </div>
+    </div>
+  )
+})
