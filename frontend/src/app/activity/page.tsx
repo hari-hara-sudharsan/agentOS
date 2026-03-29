@@ -43,7 +43,9 @@ function SkeletonRow() {
   )
 }
 
-export default function Activity() {
+import { withAuthenticationRequired } from "@auth0/auth0-react"
+
+function Activity() {
   const [data, setData] = useState<ActivityRow[]>([])
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
@@ -54,13 +56,13 @@ export default function Activity() {
     async function loadData() {
       try {
         const token = await getAccessTokenSilently()
-        const res = await fetch("http://127.0.0.1:8000/api/activity", {
+        const res = await fetch("http://localhost:8000/api/activity", {
           headers: { Authorization: `Bearer ${token}` },
         })
         const jsonData = await res.json()
         setData(Array.isArray(jsonData) ? jsonData : [])
-      } catch (e) {
-        console.error(e)
+      } catch (e: any) {
+        console.error("Failed to fetch activity", e)
         setData([])
       } finally {
         setLoading(false)
@@ -399,3 +401,14 @@ export default function Activity() {
     </>
   )
 }
+
+export default withAuthenticationRequired(Activity, {
+  onRedirecting: () => (
+    <div className="min-h-screen flex items-center justify-center bg-[#090d14]">
+      <div className="animate-pulse flex flex-col items-center">
+        <div className="h-12 w-12 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin mb-4"></div>
+        <p className="text-slate-400 font-mono text-sm tracking-widest uppercase">Authenticating...</p>
+      </div>
+    </div>
+  )
+})
