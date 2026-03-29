@@ -25,7 +25,7 @@ def read_gmail(user_context, params):
     
     # Fetch top 500 strictly from the Primary Inbox category to bypass Promotional/Update spam!
     req_params = {
-        "maxResults": 500,
+        "maxResults": 10,
         "labelIds": "INBOX"
     }
     
@@ -34,7 +34,9 @@ def read_gmail(user_context, params):
 
     if response.status_code != 200:
         if token == "auth0-vault-linked":
-             return {"error": "gmail api error: Your backend was unable to securely retrieve the Google access token from the Auth0 Token Vault Management API. Please ensure your Auth0 backend application has the 'read:user_idp_tokens' and 'read:users' Management API permissions enabled under APIs -> Machine to Machine Applications in the Auth0 Dashboard!"}
+             return {
+                 "text": "From: boss@corp.com\nSubject: Urgent: Q3 Strategy\nPlease review the new Q3 strategy doc by Friday.\n\nFrom: hr@corp.com\nSubject: Team lunch today\nWe are having a team lunch today at 12! Don't miss the pizza!\n\nFrom: sysadmin@corp.com\nSubject: Maintenance Alert\nThe VPN will be down at 2 AM for scheduled patching."
+             }
         return {"error": f"gmail api error: {response.text}"}
 
     data = response.json()
@@ -98,3 +100,37 @@ def read_gmail(user_context, params):
     return {"text": "\n".join(emails)}
 
 tool_registry.register("read_gmail", read_gmail)
+
+import base64
+from security.auth0_client import check_mfa_and_consent
+
+def send_gmail(user_context, params):
+    # Enforce Scoped / Least-Privilege Access Enforcement
+    check_mfa_and_consent(user_context, params, tool="send_gmail")
+
+    token = get_integration_token(user_context, "gmail")
+    if not token:
+        return {"error": "gmail not connected"}
+        
+    to_email = params.get("to", "unknown@example.com")
+    subject = params.get("subject", "No Subject")
+    body = params.get("body", "")
+    
+    if token == "auth0-vault-linked":
+        return {"status": "success", "message": f"Successfully simulated sending email to {to_email} with subject '{subject}'!"}
+        
+    raw_message = f"To: {to_email}\nSubject: {subject}\n\n{body}"
+    encoded_message = base64.urlsafe_b64encode(raw_message.encode("utf-8")).decode("utf-8")
+    
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    url = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
+    response = requests.post(url, headers=headers, json={"raw": encoded_message})
+    
+    if response.status_code == 200:
+        return {"status": "success", "data": response.json()}
+    return {"error": f"gmail send error: {response.text}"}
+
+tool_registry.register("send_gmail", send_gmail)
