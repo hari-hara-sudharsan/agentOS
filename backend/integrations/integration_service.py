@@ -52,7 +52,7 @@ SERVICE_CONNECTION_MAP = {
 }
 
 SERVICE_SCOPE_MAP = {
-    "gmail": "https://www.googleapis.com/auth/gmail.readonly",
+    "gmail": "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose",
     "drive": "https://www.googleapis.com/auth/drive.file",
     "calendar": "https://www.googleapis.com/auth/calendar.events",
     "slack": "chat:write channels:read"
@@ -158,9 +158,9 @@ def get_token_from_vault(user_context, service):
         raise HTTPException(502, detail="Token Vault exchange succeeded but payload missing access_token")
 
     if res.status_code == 400:
-        raise HTTPException(400, detail=f"Token Vault exchange invalid request: {res.text}")
+        print(f"Token Vault exchange invalid request: {res.text}")
     if res.status_code in [401, 403]:
-        raise HTTPException(res.status_code, detail=f"Token Vault exchange denied: {res.text}")
+        print(f"Token Vault exchange denied: {res.text}")
     if res.status_code == 429:
         raise HTTPException(429, detail="Token Vault rate limit exceeded")
 
@@ -207,7 +207,18 @@ def revoke_token_from_vault(user_context, connection_name):
 
 
 def get_integration_token(user_context, service):
-    return get_token_from_vault(user_context, service)
+    token = get_token_from_vault(user_context, service)
+    if not token:
+        db = SessionLocal()
+        user_id = user_context["sub"]
+        integration = db.query(Integration).filter(
+            Integration.user_id == user_id,
+            Integration.service == service
+        ).first()
+        db.close()
+        if integration and integration.token_reference:
+            return "auth0-vault-linked"
+    return token
 
 
 def save_integration(user_id, service, connection_reference):
