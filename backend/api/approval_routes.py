@@ -4,7 +4,7 @@ from security.auth0_client import get_current_user, get_pending_approvals, appro
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 def list_approvals(user=Depends(get_current_user)):
     return get_pending_approvals(user)
 
