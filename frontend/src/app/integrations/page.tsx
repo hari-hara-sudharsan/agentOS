@@ -4,7 +4,9 @@ import { useEffect, useState } from "react"
 import IntegrationCard from "../../components/IntegrationCard"
 import { useAuth0 } from "@auth0/auth0-react"
 
-export default function Integrations() {
+import { withAuthenticationRequired } from "@auth0/auth0-react"
+
+function Integrations() {
   const [services, setServices] = useState<any[]>([])
   const [loaded, setLoaded] = useState(false)
   const { getAccessTokenSilently } = useAuth0()
@@ -13,13 +15,13 @@ export default function Integrations() {
     async function loadServices() {
       try {
         const token = await getAccessTokenSilently()
-        const res = await fetch("http://127.0.0.1:8000/api/integrations", {
+        const res = await fetch("http://localhost:8000/api/integrations", {
           headers: { Authorization: `Bearer ${token}` },
         })
         const data = await res.json()
         setServices(Array.isArray(data) ? data : [])
-      } catch (e) {
-        console.error(e)
+      } catch (e: any) {
+        console.error("Failed to load services", e)
       } finally {
         setLoaded(true)
       }
@@ -77,7 +79,7 @@ export default function Integrations() {
           ))
         ) : services.length === 0 ? (
           <div className="col-span-1 md:col-span-2 py-20 text-center surface flex flex-col items-center justify-center border border-black/5 dark:border-white/5">
-            <svg className="w-16 h-16 text-muted mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg width={64} height={64} className="text-muted mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
             </svg>
             <h3 className="text-xl font-display font-medium mb-2">No active connections</h3>
@@ -101,3 +103,14 @@ export default function Integrations() {
     </div>
   )
 }
+
+export default withAuthenticationRequired(Integrations, {
+  onRedirecting: () => (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse flex flex-col items-center">
+        <div className="h-12 w-12 rounded-full border-4 border-accent border-t-transparent animate-spin mb-4"></div>
+        <p className="text-secondary font-mono text-sm tracking-widest uppercase">Authenticating...</p>
+      </div>
+    </div>
+  )
+})
