@@ -37,6 +37,12 @@ def send_slack_message(user_context, params, memory=None):
 
     url = "https://slack.com/api/chat.postMessage"
 
+    if token == "auth0-vault-linked":
+        return {
+            "ok": True,
+            "message": f"Successfully simulated sending Slack message to {channel}!"
+        }
+
     response = requests.post(url, headers=headers, json=payload)
 
     return response.json()
