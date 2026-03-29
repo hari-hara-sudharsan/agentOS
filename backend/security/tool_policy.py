@@ -7,7 +7,8 @@ SAFE_TOOLS = [
 RESTRICTED_TOOLS = [
     "browser_download_file",
     "upload_to_drive",
-    "send_slack_message"
+    "send_slack_message",
+    "send_gmail"
 ]
 
 
