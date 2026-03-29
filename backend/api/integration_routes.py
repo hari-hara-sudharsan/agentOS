@@ -11,7 +11,7 @@ from integrations.integration_service import (
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 def list_integrations(user=Depends(get_current_user)):
 
     services = ["gmail", "slack", "drive", "calendar"]
@@ -19,9 +19,9 @@ def list_integrations(user=Depends(get_current_user)):
     
     scopes_map = {
         "gmail": {
-            "name": "Gmail (Read-Only)",
-            "scopes": ["gmail.readonly"],
-            "description": "Allows agent to read your inbox. Cannot send emails."
+            "name": "Gmail (Read & Send)",
+            "scopes": ["gmail.readonly", "gmail.compose"],
+            "description": "Allows agent to read your inbox and send emails on your behalf."
         },
         "drive": {
             "name": "Google Drive",
@@ -48,7 +48,10 @@ def list_integrations(user=Depends(get_current_user)):
         for s in services:
             info = scopes_map.get(s, {})
             integration = db.query(Integration).filter(Integration.user_id == user["sub"], Integration.service == s).first()
-            token = get_integration_token(user, s)
+            try:
+                token = get_integration_token(user, s)
+            except Exception:
+                token = None
 
             consent_timestamp = integration.connected_at.isoformat() if integration and integration.connected_at else None
             granted_scopes = [
