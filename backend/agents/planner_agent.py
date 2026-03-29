@@ -22,6 +22,7 @@ Rules:
 
 Available tools:
 - read_gmail
+- send_gmail
 - send_slack_message
 - upload_to_drive
 - create_calendar_event
