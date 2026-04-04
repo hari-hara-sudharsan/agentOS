@@ -10,15 +10,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link
-          rel="preconnect"
-          href="https://fonts.googleapis.com"
-        />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap"
           rel="stylesheet"
@@ -83,6 +76,18 @@ export default function RootLayout({
 
             --shadow-red:   0 0 40px rgba(239,68,68,0.2), 0 0 80px rgba(239,68,68,0.08);
             --shadow-deep:  0 32px 80px rgba(0,0,0,0.7);
+
+            /* ── Spacing scale ── */
+            --space-xs:  8px;
+            --space-sm:  16px;
+            --space-md:  24px;
+            --space-lg:  40px;
+            --space-xl:  64px;
+
+            /* ── Layout widths ── */
+            --content-max:  1400px;
+            --content-pad-x: clamp(20px, 4vw, 56px);
+            --content-pad-y: clamp(24px, 3vw, 40px);
           }
 
           /* ══════════════════════════════════════════
@@ -109,7 +114,6 @@ export default function RootLayout({
             z-index: 0;
           }
 
-          /* Tight perspective grid */
           .bg-grid {
             position: absolute;
             inset: 0;
@@ -120,7 +124,6 @@ export default function RootLayout({
             mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 30%, transparent 100%);
           }
 
-          /* Large red glow — top left */
           .bg-glow--1 {
             position: absolute;
             top: -20%; left: -10%;
@@ -130,7 +133,6 @@ export default function RootLayout({
             animation: glow-breathe 6s ease-in-out infinite;
           }
 
-          /* Smaller glow — bottom right */
           .bg-glow--2 {
             position: absolute;
             bottom: -15%; right: -5%;
@@ -140,7 +142,6 @@ export default function RootLayout({
             animation: glow-breathe 8s ease-in-out infinite reverse;
           }
 
-          /* Deep center glow */
           .bg-glow--3 {
             position: absolute;
             top: 30%; left: 30%;
@@ -161,7 +162,6 @@ export default function RootLayout({
             66%       { transform: translate(-4%, 4%); }
           }
 
-          /* CRT scanline sweep */
           .bg-scanline {
             position: absolute;
             inset: 0;
@@ -175,7 +175,6 @@ export default function RootLayout({
             pointer-events: none;
           }
 
-          /* Vignette */
           .bg-vignette {
             position: absolute;
             inset: 0;
@@ -213,28 +212,32 @@ export default function RootLayout({
           }
 
           /* ══════════════════════════════════════════
-             CORNER MARKS
+             CORNER MARKS  — perfectly inset from edges
           ══════════════════════════════════════════ */
           .corner {
             position: fixed;
-            width: 20px; height: 20px;
+            width: 18px; height: 18px;
             z-index: 999;
             pointer-events: none;
             opacity: 0.45;
           }
 
-          .corner--tl { top: 12px; left: 12px;
-            border-top: 1.5px solid var(--red-hot);
-            border-left: 1.5px solid var(--red-hot); }
-          .corner--tr { top: 12px; right: 12px;
-            border-top: 1.5px solid var(--red-hot);
-            border-right: 1.5px solid var(--red-hot); }
-          .corner--bl { bottom: 12px; left: 12px;
+          /* Offset = topline height (2px) + gap (10px) = 12px; sides 14px */
+          .corner--tl { top: 12px;  left: 14px;
+            border-top:    1.5px solid var(--red-hot);
+            border-left:   1.5px solid var(--red-hot); }
+
+          .corner--tr { top: 12px;  right: 14px;
+            border-top:    1.5px solid var(--red-hot);
+            border-right:  1.5px solid var(--red-hot); }
+
+          .corner--bl { bottom: 14px; left: 14px;
             border-bottom: 1.5px solid var(--red-hot);
-            border-left: 1.5px solid var(--red-hot); }
-          .corner--br { bottom: 12px; right: 12px;
+            border-left:   1.5px solid var(--red-hot); }
+
+          .corner--br { bottom: 14px; right: 14px;
             border-bottom: 1.5px solid var(--red-hot);
-            border-right: 1.5px solid var(--red-hot); }
+            border-right:  1.5px solid var(--red-hot); }
 
           /* ══════════════════════════════════════════
              LAYOUT STRUCTURE
@@ -242,20 +245,24 @@ export default function RootLayout({
           .layout-main {
             position: relative;
             z-index: 1;
+            /* Ensures content never bleeds under corner marks */
+            padding-left:  calc(var(--content-pad-x) + 14px);
+            padding-right: calc(var(--content-pad-x) + 14px);
           }
 
           .layout-content {
-            padding: 32px 40px 60px;
-            max-width: 1400px;
+            padding: var(--content-pad-y) 0 var(--xl, 72px);
+            max-width: var(--content-max);
+            /* True optical center — slightly left-weighted grids look off */
             margin: 0 auto;
-            animation: content-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+            animation: content-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
           }
 
           @keyframes content-enter {
             from {
               opacity: 0;
-              transform: translateY(20px);
-              filter: blur(4px);
+              transform: translateY(16px);
+              filter: blur(3px);
             }
             to {
               opacity: 1;
@@ -265,28 +272,31 @@ export default function RootLayout({
           }
 
           /* ══════════════════════════════════════════
-             GLOBAL TYPOGRAPHY OVERRIDES
+             GLOBAL TYPOGRAPHY
           ══════════════════════════════════════════ */
           h1, h2, h3, h4, h5, h6 {
             font-family: var(--font-display);
             letter-spacing: 0.06em;
             color: var(--white-bright);
+            /* Prevent headings from collapsing margin with container */
+            margin-block-start: 0;
           }
 
-          /* Selection */
+          /* ══════════════════════════════════════════
+             GLOBAL INTERACTIVE STATES
+          ══════════════════════════════════════════ */
           ::selection {
             background: rgba(255,45,45,0.35);
             color: #ffffff;
           }
 
-          /* Focus rings */
           :focus-visible {
             outline: 1.5px solid rgba(255,45,45,0.7);
             outline-offset: 3px;
           }
 
           /* Scrollbar */
-          ::-webkit-scrollbar { width: 4px; height: 4px; }
+          ::-webkit-scrollbar       { width: 4px; height: 4px; }
           ::-webkit-scrollbar-track { background: var(--void); }
           ::-webkit-scrollbar-thumb {
             background: rgba(255,45,45,0.25);

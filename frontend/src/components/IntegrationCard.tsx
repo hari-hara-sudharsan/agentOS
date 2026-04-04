@@ -7,22 +7,60 @@ export default function IntegrationCard({service}:any){
   const { getAccessTokenSilently, loginWithPopup } = useAuth0()
   const [isPrompting, setIsPrompting] = useState(false)
   const [tokenInput, setTokenInput] = useState("")
+  const [usernameInput, setUsernameInput] = useState("")
+  const [passwordInput, setPasswordInput] = useState("")
+  const [errorMessage, setErrorMessage] = useState("")
 
   const connect = async () => {
-      if (["gmail", "drive", "calendar"].includes(service.service)) {
+      setErrorMessage("")
+
+      // Services that require manual token input
+      const manualTokenServices = ["pic_tools", "slack", "github", "discord", "microsoft_azure", "salesforce", "linear"]
+      
+      // LeetCode requires username/password
+      if (service.service === "leetcode") {
+          setIsPrompting(true)
+          return
+      }
+      
+      if (manualTokenServices.includes(service.service)) {
+          setIsPrompting(true)
+          return
+      }
+
+      if (["google", "gmail", "drive", "calendar"].includes(service.service)) {
           try {
-              // Trigger Auth0 OAuth flow for Google to store tokens in the Auth0 Token Vault
+              const connection = "google-oauth2"
+              
+              // Request explicit Google API scopes
+              let scopes = "openid profile email offline_access"
+              if (service.service === "gmail") {
+                  scopes = "openid profile email offline_access https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose"
+              } else if (service.service === "drive") {
+                  scopes = "openid profile email offline_access https://www.googleapis.com/auth/drive.file"
+              } else if (service.service === "calendar") {
+                  scopes = "openid profile email offline_access https://www.googleapis.com/auth/calendar.events"
+              } else if (service.service === "google") {
+                  scopes = "openid profile email offline_access https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events"
+              }
+
+              console.log(`[AgentOS] Starting OAuth flow for ${service.service} with connection: ${connection}`)
+              
               await loginWithPopup({
                   authorizationParams: {
-                      connection: "google-oauth2",
+                      connection,
                       prompt: "consent",
                       access_type: "offline",
-                      connection_scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events"
+                      scope: scopes
                   }
               })
+
+              console.log(`[AgentOS] OAuth popup completed, getting access token...`)
               
-              // Tell backend to mark it as connected (Token Vault is the real source)
               const auth0Token = await getAccessTokenSilently()
+              console.log(`[AgentOS] Got access token, length: ${auth0Token?.length || 0}`)
+              
+              console.log(`[AgentOS] Calling backend /api/integrations/connect/${service.service}...`)
               const res = await fetch(`http://localhost:8000/api/integrations/connect/${service.service}`, {
                   method: "POST",
                   headers: {
@@ -31,12 +69,26 @@ export default function IntegrationCard({service}:any){
                   },
                   body: JSON.stringify({ token: "auth0-vault-linked" })
               })
+
+              console.log(`[AgentOS] Backend response: ${res.status}`)
               
               if (res.ok) {
+                  console.log(`[AgentOS] Success! Reloading page...`)
                   window.location.reload()
+              } else {
+                  const body = await res.text().catch(() => "")
+                  console.error(`[AgentOS] Backend error: ${res.status} ${body}`)
+                  setErrorMessage(`Integration connect failed: ${res.status} ${body}`)
               }
-          } catch(e) {
-              console.error(`Failed to connect ${service.service} via Auth0 Token Vault`, e)
+          } catch (err: any) {
+              const message = (err?.message || String(err)).toString()
+              console.error(`[AgentOS] OAuth error:`, err)
+              if (/consent/i.test(message)) {
+                  setErrorMessage("Consent required: please complete provider consent and try again.")
+              } else {
+                  setErrorMessage(`Failed to connect ${service.service}: ${message}`)
+              }
+              console.error(`Failed to connect ${service.service} via Auth0 Token Vault`, err)
           }
       } else {
           setIsPrompting(true)
@@ -57,6 +109,36 @@ export default function IntegrationCard({service}:any){
   }
 
   const submitToken = async () => {
+    // Handle LeetCode username/password
+    if (service.service === "leetcode") {
+        if (!usernameInput || !passwordInput) {
+            setErrorMessage("Both username and password are required")
+            return
+        }
+        
+        try {
+            const auth0Token = await getAccessTokenSilently()
+            const res = await fetch(`http://localhost:8000/api/integrations/connect/${service.service}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${auth0Token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username: usernameInput, password: passwordInput })
+            })
+            if (res.ok) {
+                window.location.reload()
+            } else {
+                const body = await res.json().catch(() => ({}))
+                setErrorMessage(body.detail || "Failed to connect LeetCode")
+            }
+        } catch(e) {
+            console.error("Failed to connect", e)
+            setErrorMessage("Failed to connect LeetCode")
+        }
+        return
+    }
+    
     if (!tokenInput) {
         setIsPrompting(false)
         return
@@ -111,6 +193,12 @@ export default function IntegrationCard({service}:any){
         </p>
       )}
 
+      {errorMessage && (
+        <p className="text-xs text-red-300 mb-4 font-semibold break-words">
+          {errorMessage}
+        </p>
+      )}
+
       {service.connected && service.granted_scopes && service.granted_scopes.length > 0 && (
         <div className="mb-4 bg-slate-700/50 border border-slate-600 px-4 py-3 rounded-md">
           <p className="text-xs uppercase tracking-widest text-slate-400 mb-3 font-semibold">Explicit Scopes Granted</p>
@@ -153,16 +241,71 @@ export default function IntegrationCard({service}:any){
           </button>
         )}
 
-        {!service.connected && isPrompting && (
+        {/* LeetCode: Username/Password form */}
+        {!service.connected && isPrompting && service.service === "leetcode" && (
             <div className="flex flex-col gap-3">
               <input 
                   type="text" 
-                  placeholder="Enter Vault Token Override..." 
+                  placeholder="LeetCode Username or Email"
+                  value={usernameInput} 
+                  onChange={(e) => setUsernameInput(e.target.value)} 
+                  className="w-full font-mono text-sm bg-slate-700 text-slate-100 placeholder-slate-400 border border-slate-600 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  autoFocus
+              />
+              <input 
+                  type="password" 
+                  placeholder="LeetCode Password"
+                  value={passwordInput} 
+                  onChange={(e) => setPasswordInput(e.target.value)} 
+                  className="w-full font-mono text-sm bg-slate-700 text-slate-100 placeholder-slate-400 border border-slate-600 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+              />
+              <p className="text-xs text-slate-400">
+                Credentials are stored securely for automated LeetCode submissions.
+              </p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => { setIsPrompting(false); setUsernameInput(""); setPasswordInput(""); setErrorMessage(""); }} 
+                  className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                    onClick={submitToken} 
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-all shadow-md"
+                >
+                    Connect LeetCode
+                </button>
+              </div>
+            </div>
+        )}
+
+        {/* Other services: Token input form */}
+        {!service.connected && isPrompting && service.service !== "leetcode" && (
+            <div className="flex flex-col gap-3">
+              <input 
+                  type="text" 
+                  placeholder={
+                    service.service === "slack" 
+                      ? "Enter Slack Bot Token (xoxb-...)" 
+                      : service.service === "github"
+                      ? "Enter GitHub Personal Access Token"
+                      : "Enter API Key or Token..."
+                  }
                   value={tokenInput} 
                   onChange={(e) => setTokenInput(e.target.value)} 
                   className="w-full font-mono text-sm bg-slate-700 text-slate-100 placeholder-slate-400 border border-slate-600 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   autoFocus
               />
+              {service.service === "slack" && (
+                <p className="text-xs text-slate-400">
+                  Get token from <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">api.slack.com/apps</a> → OAuth & Permissions → Bot User OAuth Token
+                </p>
+              )}
+              {service.service === "github" && (
+                <p className="text-xs text-slate-400">
+                  Get PAT from <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">GitHub Settings → Tokens</a> with 'repo' scope
+                </p>
+              )}
               <div className="flex gap-2">
                 <button 
                   onClick={() => setIsPrompting(false)} 

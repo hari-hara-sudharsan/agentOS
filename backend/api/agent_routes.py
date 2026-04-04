@@ -10,6 +10,7 @@ from registry.tool_registry import tool_registry
 from fastapi.responses import StreamingResponse
 import json
 import asyncio
+import time
 
 router = APIRouter()
 
@@ -21,8 +22,11 @@ class TaskRequest(BaseModel):
 
 
 async def stream_execution(plan, executor, user):
+    from database.analytics_repository import record_agent_execution
+    from database.activity_logger import log_activity
 
     tasks = plan.get("tasks", [])
+    user_id = user.get("sub", "system")
 
     yield json.dumps({
         "event": "plan_created",
@@ -32,6 +36,7 @@ async def stream_execution(plan, executor, user):
     for task in tasks:
 
         tool = task["tool"]
+        start_time = time.time()
 
         yield json.dumps({
             "event": "step_started",
@@ -46,14 +51,29 @@ async def stream_execution(plan, executor, user):
                 executor.memory
             )
 
-            # Log authorized tool execution
-            from database.activity_logger import log_activity
-            user_id = user.get("sub", "system")
-            log_activity(
-                user_id,
-                action=f"tool_execution:{tool}",
-                status="authorized"
-            )
+            execution_time = time.time() - start_time
+            
+            # Log authorized tool execution (non-critical, wrap in try/except)
+            try:
+                log_activity(
+                    user_id,
+                    action=f"tool_execution:{tool}",
+                    status="authorized"
+                )
+            except Exception as log_err:
+                print(f"[WARN] Failed to log activity: {log_err}")
+            
+            # Record analytics (non-critical)
+            try:
+                record_agent_execution(
+                    user_id=user_id,
+                    task_name=plan.get("goal", tool),
+                    execution_time=int(execution_time * 1000) / 1000,  # milliseconds to seconds
+                    status="success",
+                    tool_name=tool
+                )
+            except Exception as analytics_err:
+                print(f"[WARN] Failed to record analytics: {analytics_err}")
 
             executor.memory.store(tool, result)
 
@@ -64,14 +84,17 @@ async def stream_execution(plan, executor, user):
             }) + "\n"
 
         except ConsentRequiredException as ce:
-            from database.activity_logger import log_activity
-            user_id = user.get("sub", "system")
-
-            log_activity(
-                user_id,
-                action=f"awaiting_consent:{tool}",
-                status="pending"
-            )
+            execution_time = time.time() - start_time
+            
+            try:
+                log_activity(
+                    user_id,
+                    action=f"awaiting_consent:{tool}",
+                    status="pending"
+                )
+            except:
+                pass
+            
             yield json.dumps({
                 "event": "pending_approval",
                 "tool": tool,
@@ -82,16 +105,18 @@ async def stream_execution(plan, executor, user):
             break
 
         except Exception as e:
+            execution_time = time.time() - start_time
             error_str = str(e)
             
             if "pending_approval_required" in error_str or e.__class__.__name__ == "ConsentRequiredException":
-                from database.activity_logger import log_activity
-                user_id = user.get("sub", "system")
-                log_activity(
-                    user_id,
-                    action=f"awaiting_consent:{tool}",
-                    status="pending"
-                )
+                try:
+                    log_activity(
+                        user_id,
+                        action=f"awaiting_consent:{tool}",
+                        status="pending"
+                    )
+                except:
+                    pass
                 yield json.dumps({
                     "event": "pending_approval",
                     "tool": tool,
@@ -101,16 +126,30 @@ async def stream_execution(plan, executor, user):
                 }) + "\n"
                 break
                 
-            from database.activity_logger import log_activity
-            user_id = user.get("sub", "system")
 
             if "Role" in error_str and "cannot execute tool" in error_str or "Tool not allowed" in error_str:
                 # Log blocked tool execution
-                log_activity(
-                    user_id,
-                    action=f"blocked_tool:{tool}",
-                    status="denied"
+                try:
+                    log_activity(
+                        user_id,
+                        action=f"blocked_tool:{tool}",
+                        status="denied"
+                    )
+                except:
+                    pass
+            
+            # Record failed execution (non-critical)
+            try:
+                record_agent_execution(
+                    user_id=user_id,
+                    task_name=plan.get("goal", tool),
+                    execution_time=int(execution_time * 1000) / 1000,
+                    status="failed",
+                    tool_name=tool,
+                    error_message=error_str[:500]  # Truncate long errors
                 )
+            except Exception as analytics_err:
+                print(f"[WARN] Failed to record analytics: {analytics_err}")
             
             yield json.dumps({
                 "event": "step_failed",
@@ -156,7 +195,12 @@ def resume_agent_task(
     Job 4: Async Step-up Auth (Resume).
     Frontend calls this after user approves the step-up prompt.
     """
+    from database.analytics_repository import record_agent_execution
+    from database.activity_logger import log_activity
+    
     task = resume_req.task
+    user_id = user.get("sub", "system")
+    
     if "params" not in task:
         task["params"] = {}
 
@@ -167,19 +211,51 @@ def resume_agent_task(
     elif task.get("params", {}).get("approval_id"):
         task["params"]["approval_id"] = task["params"]["approval_id"]
     
+    start_time = time.time()
+    
     try:
         result = task_executor.router.execute_tool(
             task,
             user,
             task_executor.memory
         )
-        # Log successful completion after step-up
-        from database.activity_logger import log_activity
-        log_activity(user.get("sub", "system"), action=f"step_up_approved:{task['tool']}", status="success")
+        execution_time = time.time() - start_time
+        
+        # Log successful completion after step-up (non-critical)
+        try:
+            log_activity(user_id, action=f"step_up_approved:{task['tool']}", status="success")
+        except:
+            pass
+        
+        # Record analytics (non-critical)
+        try:
+            record_agent_execution(
+                user_id=user_id,
+                task_name=f"Approved: {task['tool']}",
+                execution_time=int(execution_time * 1000) / 1000,
+                status="success",
+                tool_name=task['tool']
+            )
+        except:
+            pass
         
         task_executor.memory.store(task["tool"], result)
         return {"status": "success", "result": result}
     except Exception as e:
+        execution_time = time.time() - start_time
+        
+        try:
+            record_agent_execution(
+                user_id=user_id,
+                task_name=f"Approved: {task['tool']}",
+                execution_time=int(execution_time * 1000) / 1000,
+                status="failed",
+                tool_name=task['tool'],
+                error_message=str(e)[:500]
+            )
+        except:
+            pass
+        
         return {"status": "error", "error": str(e)}
 
 

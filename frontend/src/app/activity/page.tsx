@@ -4,28 +4,65 @@ import { useEffect, useState } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
 
 type ActivityRow = {
+  id: string
+  type: "tool_execution" | "approval"
   task_name: string
   status: string
   execution_time: number
+  created_at: string | null
+  tool_name?: string | null
+  binding_message?: string
+  approved_at?: string | null
+  error?: string | null
+}
+
+type ActivitySummary = {
+  total_executions: number
+  successful: number
+  failed: number
+  pending_approvals: number
+  approved_count: number
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string; bg: string }> = {
   success:   { label: "Success",   color: "#4ade80", dot: "#22c55e", bg: "rgba(74,222,128,0.08)"  },
   completed: { label: "Completed", color: "#4ade80", dot: "#22c55e", bg: "rgba(74,222,128,0.08)"  },
   running:   { label: "Running",   color: "#facc15", dot: "#eab308", bg: "rgba(250,204,21,0.08)"  },
-  pending:   { label: "Pending",   color: "#94a3b8", dot: "#64748b", bg: "rgba(148,163,184,0.08)" },
+  pending:   { label: "Pending",   color: "#f97316", dot: "#ea580c", bg: "rgba(249,115,22,0.08)" },
+  approved:  { label: "Approved",  color: "#4ade80", dot: "#22c55e", bg: "rgba(74,222,128,0.08)"  },
   failed:    { label: "Failed",    color: "#f87171", dot: "#ef4444", bg: "rgba(248,113,113,0.08)" },
   error:     { label: "Error",     color: "#f87171", dot: "#ef4444", bg: "rgba(248,113,113,0.08)" },
+}
+
+const TYPE_CONFIG: Record<string, { icon: string; color: string }> = {
+  tool_execution: { icon: "⚡", color: "#818cf8" },
+  approval: { icon: "🔐", color: "#f97316" },
 }
 
 function getStatus(s: string) {
   return STATUS_CONFIG[s?.toLowerCase()] ?? STATUS_CONFIG["pending"]
 }
 
+function formatTimeAgo(dateStr: string | null): string {
+  if (!dateStr) return "—"
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+  
+  if (diffMins < 1) return "just now"
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString()
+}
+
 function SkeletonRow() {
   return (
     <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-      {[60, 40, 30].map((w, i) => (
+      {[60, 40, 30, 20].map((w, i) => (
         <td key={i} style={{ padding: "16px 20px" }}>
           <div
             style={{
@@ -47,6 +84,7 @@ import { withAuthenticationRequired } from "@auth0/auth0-react"
 
 function Activity() {
   const [data, setData] = useState<ActivityRow[]>([])
+  const [summary, setSummary] = useState<ActivitySummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const { getAccessTokenSilently } = useAuth0()
@@ -56,11 +94,24 @@ function Activity() {
     async function loadData() {
       try {
         const token = await getAccessTokenSilently()
-        const res = await fetch("http://localhost:8000/api/activity", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const jsonData = await res.json()
+        
+        // Fetch both activity and summary in parallel
+        const [activityRes, summaryRes] = await Promise.all([
+          fetch("http://localhost:8000/api/activity", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch("http://localhost:8000/api/activity/summary", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ])
+        
+        const jsonData = await activityRes.json()
         setData(Array.isArray(jsonData) ? jsonData : [])
+        
+        if (summaryRes.ok) {
+          const summaryData = await summaryRes.json()
+          setSummary(summaryData)
+        }
       } catch (e: any) {
         console.error("Failed to fetch activity", e)
         setData([])
@@ -71,11 +122,11 @@ function Activity() {
     loadData()
   }, [getAccessTokenSilently])
 
-  const successCount = data.filter(d => ["success","completed"].includes(d.status?.toLowerCase())).length
+  const toolExecutions = data.filter(d => d.type === "tool_execution")
+  const approvalItems = data.filter(d => d.type === "approval")
+  const successCount = data.filter(d => ["success","completed","approved"].includes(d.status?.toLowerCase())).length
+  const pendingCount = data.filter(d => d.status?.toLowerCase() === "pending").length
   const failedCount  = data.filter(d => ["failed","error"].includes(d.status?.toLowerCase())).length
-  const avgTime      = data.length
-    ? (data.reduce((s, d) => s + (d.execution_time ?? 0), 0) / data.length).toFixed(2)
-    : "—"
 
   return (
     <>
@@ -148,7 +199,7 @@ function Activity() {
           pointerEvents: "none",
         }} />
 
-        <div style={{ maxWidth: 900, margin: "0 auto", position: "relative" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
 
           {/* ── Header ── */}
           <div style={{
@@ -182,7 +233,7 @@ function Activity() {
                 marginTop: 6, fontSize: 13, color: "rgba(148,163,184,0.7)",
                 fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400,
               }}>
-                {loading ? "Fetching task logs…" : `${data.length} task${data.length !== 1 ? "s" : ""} recorded`}
+                {loading ? "Fetching activity logs…" : `${toolExecutions.length} tool executions · ${approvalItems.length} approvals`}
               </p>
             </div>
 
@@ -199,17 +250,18 @@ function Activity() {
           </div>
 
           {/* ── Stat Cards ── */}
-          {!loading && data.length > 0 && (
+          {!loading && (
             <div style={{
-              display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12,
+              display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12,
               marginBottom: 28,
               animation: mounted ? "fadeSlideIn 0.5s 0.1s ease both" : "none",
               opacity: mounted ? 1 : 0,
             }}>
               {[
-                { label: "Total Tasks",    value: data.length,  accent: "#818cf8", bg: "rgba(99,102,241,0.08)",  border: "rgba(99,102,241,0.2)"  },
-                { label: "Successful",     value: successCount, accent: "#4ade80", bg: "rgba(74,222,128,0.08)",  border: "rgba(74,222,128,0.2)"  },
-                { label: "Avg Exec Time",  value: avgTime === "—" ? "—" : `${avgTime}s`, accent: "#f9a8d4", bg: "rgba(249,168,212,0.08)", border: "rgba(249,168,212,0.2)" },
+                { label: "Tool Executions", value: summary?.total_executions ?? toolExecutions.length, accent: "#818cf8", bg: "rgba(99,102,241,0.08)", border: "rgba(99,102,241,0.2)" },
+                { label: "Successful",      value: summary?.successful ?? successCount, accent: "#4ade80", bg: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.2)" },
+                { label: "Pending Approvals", value: summary?.pending_approvals ?? pendingCount, accent: "#f97316", bg: "rgba(249,115,22,0.08)", border: "rgba(249,115,22,0.2)" },
+                { label: "Failed",          value: summary?.failed ?? failedCount, accent: "#f87171", bg: "rgba(248,113,113,0.08)", border: "rgba(248,113,113,0.2)" },
               ].map((stat, i) => (
                 <div key={i} className="stat-card" style={{
                   background: stat.bg,
@@ -258,14 +310,14 @@ function Activity() {
                 marginLeft: 8, fontSize: 11, color: "rgba(148,163,184,0.4)",
                 fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.06em",
               }}>
-                activity_log.json
+                unified_activity_log.json
               </span>
             </div>
 
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  {["Task Name", "Status", "Exec Time"].map((h, i) => (
+                  {["Type", "Task / Action", "Status", "Time"].map((h, i) => (
                     <th key={i} style={{
                       padding: "13px 20px",
                       textAlign: "left",
@@ -289,41 +341,71 @@ function Activity() {
                   : data.length === 0
                     ? (
                       <tr>
-                        <td colSpan={3} style={{
+                        <td colSpan={4} style={{
                           padding: "48px 20px", textAlign: "center",
                           fontFamily: "'IBM Plex Mono', monospace", fontSize: 13,
                           color: "rgba(148,163,184,0.3)",
                         }}>
                           <div style={{ fontSize: 28, marginBottom: 12 }}>◌</div>
-                          No activity recorded yet
+                          No activity recorded yet. Start chatting with your agent!
                         </td>
                       </tr>
                     )
                     : data.map((d, i) => {
                         const s = getStatus(d.status)
+                        const t = TYPE_CONFIG[d.type] || TYPE_CONFIG.tool_execution
                         return (
                           <tr
-                            key={i}
+                            key={d.id || i}
                             className="activity-row"
                             style={{
                               animation: mounted ? `fadeSlideIn 0.4s ${0.05 * i}s ease both` : "none",
                             }}
                           >
+                            {/* Type */}
+                            <td>
+                              <div style={{
+                                display: "inline-flex", alignItems: "center", gap: 8,
+                                background: `${t.color}15`,
+                                border: `1px solid ${t.color}30`,
+                                borderRadius: 8,
+                                padding: "6px 10px",
+                              }}>
+                                <span style={{ fontSize: 14 }}>{t.icon}</span>
+                                <span style={{
+                                  fontSize: 10,
+                                  color: t.color,
+                                  textTransform: "uppercase",
+                                  letterSpacing: "0.08em",
+                                  fontWeight: 500,
+                                }}>
+                                  {d.type === "tool_execution" ? "Tool" : "Approval"}
+                                </span>
+                              </div>
+                            </td>
+                            
                             {/* Task name */}
                             <td>
-                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <div style={{
-                                  width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                                  background: "rgba(99,102,241,0.12)",
-                                  border: "1px solid rgba(99,102,241,0.2)",
-                                  display: "flex", alignItems: "center", justifyContent: "center",
-                                  fontSize: 11, color: "#818cf8", fontWeight: 500,
-                                }}>
-                                  {String(i + 1).padStart(2, "0")}
-                                </div>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                                 <span style={{ color: "#e2e8f0", fontWeight: 500 }}>
                                   {d.task_name}
                                 </span>
+                                {d.tool_name && (
+                                  <span style={{
+                                    fontSize: 11,
+                                    color: "rgba(148,163,184,0.5)",
+                                  }}>
+                                    tool: {d.tool_name}
+                                  </span>
+                                )}
+                                {d.error && (
+                                  <span style={{
+                                    fontSize: 11,
+                                    color: "#f87171",
+                                  }}>
+                                    {d.error}
+                                  </span>
+                                )}
                               </div>
                             </td>
 
@@ -344,24 +426,24 @@ function Activity() {
                                 <span style={{
                                   width: 5, height: 5, borderRadius: "50%",
                                   background: s.dot, flexShrink: 0,
-                                  animation: d.status?.toLowerCase() === "running"
+                                  animation: d.status?.toLowerCase() === "running" || d.status?.toLowerCase() === "pending"
                                     ? "pulse-dot 1.2s ease-in-out infinite" : "none",
                                 }} />
                                 {s.label}
                               </span>
                             </td>
 
-                            {/* Execution time */}
+                            {/* Time */}
                             <td>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <div style={{
-                                  height: 3, borderRadius: 3, flexShrink: 0,
-                                  width: Math.min(60, Math.max(8, (d.execution_time / 10) * 60)),
-                                  background: `linear-gradient(to right, rgba(99,102,241,0.6), rgba(20,184,166,0.6))`,
-                                }} />
-                                <span style={{ color: "rgba(226,232,240,0.6)", whiteSpace: "nowrap" }}>
-                                  {d.execution_time}s
+                              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                <span style={{ color: "rgba(226,232,240,0.8)", fontSize: 12 }}>
+                                  {formatTimeAgo(d.created_at)}
                                 </span>
+                                {d.execution_time > 0 && (
+                                  <span style={{ color: "rgba(148,163,184,0.4)", fontSize: 10 }}>
+                                    {d.execution_time}s exec
+                                  </span>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -382,9 +464,17 @@ function Activity() {
                   fontFamily: "'IBM Plex Mono', monospace", fontSize: 11,
                   color: "rgba(148,163,184,0.3)",
                 }}>
-                  {data.length} rows · page 1
+                  {data.length} rows · showing latest 50
                 </span>
-                {failedCount > 0 && (
+                {pendingCount > 0 && (
+                  <span style={{
+                    fontFamily: "'IBM Plex Mono', monospace", fontSize: 11,
+                    color: "rgba(249,115,22,0.8)",
+                  }}>
+                    🔐 {pendingCount} pending approval{pendingCount > 1 ? "s" : ""} — go to Approvals page
+                  </span>
+                )}
+                {failedCount > 0 && pendingCount === 0 && (
                   <span style={{
                     fontFamily: "'IBM Plex Mono', monospace", fontSize: 11,
                     color: "rgba(248,113,113,0.6)",

@@ -603,61 +603,6 @@ export default function Dashboard() {
           padding: 14px 16px;
         }
 
-        .model-indicator {
-          display: flex; align-items: center; gap: 10px;
-          margin-bottom: 14px;
-          padding-bottom: 14px;
-          border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .model-orb {
-          width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-          background: conic-gradient(from 180deg, var(--gold-dim), var(--gold), var(--gold-bright), var(--gold));
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 0 16px rgba(201,168,76,0.25);
-        }
-        .model-orb-inner {
-          width: 22px; height: 22px; border-radius: 50%;
-          background: var(--bg-raised);
-          display: flex; align-items: center; justify-content: center;
-        }
-        .model-orb-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: var(--gold);
-          box-shadow: 0 0 8px var(--gold);
-          animation: pulse-dot 2s ease-in-out infinite;
-        }
-
-        .model-name {
-          font-size: 11px; color: var(--text-primary);
-          letter-spacing: 0.04em; margin-bottom: 2px;
-        }
-        .model-version {
-          font-size: 8px; color: var(--text-muted);
-          letter-spacing: 0.12em;
-        }
-
-        .capability-row {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 7px 0;
-          border-bottom: 1px solid rgba(201,168,76,0.05);
-          font-size: 9px;
-        }
-        .capability-row:last-child { border-bottom: none; }
-        .cap-label { color: var(--text-muted); letter-spacing: 0.08em; }
-        .cap-value {
-          color: var(--gold);
-          letter-spacing: 0.05em;
-          font-size: 9px;
-        }
-        .cap-dot {
-          width: 5px; height: 5px; border-radius: 50%;
-          background: var(--emerald);
-          box-shadow: 0 0 5px var(--emerald);
-          flex-shrink: 0;
-        }
-        .cap-dot.warn { background: var(--gold); box-shadow: 0 0 5px var(--gold); }
-
         .activity-log { display: flex; flex-direction: column; }
 
         .log-item {
@@ -791,10 +736,10 @@ export default function Dashboard() {
             {/* Stats */}
             <div className="stats-grid">
               {[
-                { label: "Sessions Today", value: "48",   unit: "",  delta: "↑ 12% vs yesterday", mood: "",        glyph: "◈" },
-                { label: "Avg Response",   value: "1.4",  unit: "s", delta: "↓ 8% faster",        mood: "",        glyph: "◎" },
-                { label: "Tokens Used",    value: "284",  unit: "K", delta: "↑ 3% this hour",     mood: "",        glyph: "◉" },
-                { label: "Success Rate",   value: "99.2", unit: "%", delta: "stable",              mood: "neutral", glyph: "◫" },
+                { label: "Active Sessions", value: "12",   unit: "",  delta: "Real-time", mood: "",        glyph: "◈" },
+                { label: "Avg Response Time",   value: "0.8",  unit: "s", delta: "Within SLA",        mood: "",        glyph: "◎" },
+                { label: "Tasks Completed",    value: "156",  unit: "", delta: "This week",     mood: "",        glyph: "◉" },
+                { label: "System Health",   value: "99.8", unit: "%", delta: "All systems operational",              mood: "neutral", glyph: "◫" },
               ].map(s => (
                 <div key={s.label} className="stat-card">
                   <div className="stat-label">{s.label}</div>
@@ -822,39 +767,6 @@ export default function Dashboard() {
 
               {/* Info Panel */}
               <div className="info-panel">
-
-                {/* Model Card */}
-                <div className="info-card">
-                  <div className="info-card-header">Active Model</div>
-                  <div className="info-card-body">
-                    <div className="model-indicator">
-                      <div className="model-orb">
-                        <div className="model-orb-inner">
-                          <div className="model-orb-dot" />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="model-name">Claude Sonnet</div>
-                        <div className="model-version">claude-sonnet-4 · 200K ctx</div>
-                      </div>
-                    </div>
-
-                    {[
-                      { cap: "Reasoning", val: "Advanced", dot: "" },
-                      { cap: "Vision",    val: "Enabled",  dot: "" },
-                      { cap: "Tools",     val: "Active",   dot: "" },
-                      { cap: "Memory",    val: "Session",  dot: "warn" },
-                    ].map(c => (
-                      <div key={c.cap} className="capability-row">
-                        <span className="cap-label">{c.cap}</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <div className={`cap-dot${c.dot ? ` ${c.dot}` : ""}`} />
-                          <span className="cap-value">{c.val}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
                 {/* Activity Log */}
                 <div className="info-card">

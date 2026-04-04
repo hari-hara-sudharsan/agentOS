@@ -8,10 +8,16 @@ export default function LoginButton() {
 
   return (
     <button
-      onClick={() => loginWithRedirect()}
+      onClick={() => loginWithRedirect({
+        authorizationParams: {
+          scope: "openid profile email offline_access https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events",
+          prompt: "consent",
+          access_type: "offline"
+        }
+      })}
       className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2 rounded-lg font-medium text-sm uppercase tracking-wider transition-colors duration-200"
     >
-      Login
+      System Access
     </button>
   )
 }
