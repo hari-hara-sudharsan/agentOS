@@ -2,30 +2,16 @@ import os
 import re
 import time
 import requests
+from datetime import datetime
+from collections import deque
 from requests.exceptions import RequestException
 from database.db import SessionLocal
 from database.models import Integration
 from fastapi import HTTPException
 
-
-from collections import deque
-
 TOKEN_VAULT_CALLS = deque()
-
-
-def rate_limited(max_per_minute=30):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            now = time.time()
-            while TOKEN_VAULT_CALLS and TOKEN_VAULT_CALLS[0] < now - 60:
-                TOKEN_VAULT_CALLS.popleft()
-            if len(TOKEN_VAULT_CALLS) >= max_per_minute:
-                raise HTTPException(429, detail="Token Vault call rate limit exceeded")
-            TOKEN_VAULT_CALLS.append(now)
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
-
+MANAGEMENT_TOKEN_CACHE = None
+MANAGEMENT_TOKEN_EXPIRY = 0
 
 def retry(tries=3, backoff=0.3, allowed_exceptions=(RequestException,)):
     def decorator(func):
@@ -43,8 +29,8 @@ def retry(tries=3, backoff=0.3, allowed_exceptions=(RequestException,)):
         return wrapper
     return decorator
 
-
 SERVICE_CONNECTION_MAP = {
+    "google": "google-oauth2",
     "gmail": "google-oauth2",
     "drive": "google-oauth2",
     "calendar": "google-oauth2",
@@ -52,22 +38,33 @@ SERVICE_CONNECTION_MAP = {
 }
 
 SERVICE_SCOPE_MAP = {
-    "gmail": "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose",
-    "drive": "https://www.googleapis.com/auth/drive.file",
-    "calendar": "https://www.googleapis.com/auth/calendar.events",
+    "google": "openid profile email offline_access https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/calendar.events",
+    "gmail": "openid profile email offline_access https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose",
+    "drive": "openid profile email offline_access https://www.googleapis.com/auth/drive",
+    "calendar": "openid profile email offline_access https://www.googleapis.com/auth/calendar.events",
     "slack": "chat:write channels:read"
 }
 
 JWT_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
 
+def _is_raw_token(token: str) -> bool:
+    """Check if token is a direct provider token (ya29., xox.). JWTs are not 'raw' here."""
+    if not token or token == "auth0-vault-linked":
+        return False
+    # Only treat direct third-party tokens as 'raw' to avoid vault exchange.
+    # We do NOT treat JWTs as raw, because we need to EXCHANGE them.
+    return token.startswith("ya29.") or token.startswith("xox")
 
-@rate_limited(max_per_minute=30)
 @retry(tries=3, backoff=0.3)
 def get_management_token():
+    global MANAGEMENT_TOKEN_CACHE, MANAGEMENT_TOKEN_EXPIRY
+    now = time.time()
+    if MANAGEMENT_TOKEN_CACHE and now < MANAGEMENT_TOKEN_EXPIRY:
+        return MANAGEMENT_TOKEN_CACHE
+
     domain = os.getenv("AUTH0_DOMAIN")
     client_id = os.getenv("AUTH0_CLIENT_ID")
     client_secret = os.getenv("AUTH0_CLIENT_SECRET")
-
     if not all([domain, client_id, client_secret]):
         return None
 
@@ -80,21 +77,12 @@ def get_management_token():
     }
     res = requests.post(url, json=payload)
     if res.status_code == 200:
-        return res.json().get("access_token")
+        data = res.json()
+        MANAGEMENT_TOKEN_CACHE = data.get("access_token")
+        MANAGEMENT_TOKEN_EXPIRY = now + 1800 
+        return MANAGEMENT_TOKEN_CACHE
     return None
 
-
-def _is_raw_token(value: str) -> bool:
-    if not value or not isinstance(value, str):
-        return False
-    if JWT_PATTERN.match(value):
-        return True
-    if len(value.split(".")) > 2:
-        return True
-    return False
-
-
-@rate_limited(max_per_minute=30)
 @retry(tries=3, backoff=0.3)
 def get_connection_reference(user_context, service):
     """Return non-sensitive provider linkage reference from Auth0 identity."""
@@ -119,127 +107,137 @@ def get_connection_reference(user_context, service):
                 return f"{provider}:{provider_user_id}"
     return None
 
-
-@rate_limited(max_per_minute=30)
 @retry(tries=3, backoff=0.3)
 def get_token_from_vault(user_context, service):
-    """Token Vault exchange path (no raw tokens from local DB)."""
+    """Entry point for retrieving a usable access token."""
+    db = SessionLocal()
+    try:
+        user_id = user_context["sub"]
+        integration = db.query(Integration).filter(Integration.user_id == user_id, Integration.service == service).first()
+        if integration and _is_raw_token(integration.token_reference):
+            t = integration.token_reference
+            print(f"DEBUG: Using local DB token for {service} (mask: {t[:4]}...{t[-4:]})")
+            return t
+    finally:
+        db.close()
+
+    # Step 1: Try Token Exchange (Federated)
+    subject_token = user_context.get("auth0_access_token")
+    if subject_token and not _is_raw_token(subject_token):
+        token = exchange_token(user_context, service)
+        if token:
+            return token
+
+    # Step 2: Try Auth0 Management API Identity Fallback
+    # Note: Previously skipped for Google services due to stale tokens issue.
+    # Re-enabled with fresh token exchange fix.
+
+    token = fetch_token_from_identities(user_context, service)
+    if token:
+        # Before returning, try to save it as a local raw token for future use
+        save_integration(user_context["sub"], service, token)
+        return token
+
+    return None
+
+def exchange_token(user_context, service):
+    """Attempt Auth0 Federated Token Exchange via Token Vault."""
     connection_name = SERVICE_CONNECTION_MAP.get(service, service)
     subject_token = user_context.get("auth0_access_token")
-
-    if not subject_token or _is_raw_token(subject_token) is False:
-        # auth0 session token is required for token exchange
-        return None
-
     scope = SERVICE_SCOPE_MAP.get(service)
-    if not scope:
-        return None
-
     domain = os.getenv("AUTH0_DOMAIN")
     client_id = os.getenv("AUTH0_CLIENT_ID")
     client_secret = os.getenv("AUTH0_CLIENT_SECRET")
 
-    exchange_payload = {
+    payload = {
         "grant_type": "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
         "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
+        "requested_token_type": "http://auth0.com/oauth/token-type/federated-connection-access-token",
         "subject_token": subject_token,
         "connection": connection_name,
-        "scope": scope,
-        "audience": scope
+        "scope": scope
     }
-
-    token_url = f"https://{domain}/oauth/token"
-    res = requests.post(token_url, json=exchange_payload, auth=(client_id, client_secret))
-
-    if res.status_code == 200:
-        token = res.json().get("access_token")
-        if token:
+    
+    url = f"https://{domain}/oauth/token"
+    print(f"DEBUG: Token Vault Exchange - URL={url} connection={connection_name} scope={scope[:50] if scope else 'None'}...")
+    try:
+        res = requests.post(url, json=payload, auth=(client_id, client_secret), timeout=10)
+        print(f"DEBUG: Token Vault Exchange Response - status={res.status_code}")
+        if res.status_code == 200:
+            token = res.json().get("access_token")
+            print(f"DEBUG: Token Vault Exchange SUCCESS - got token (len={len(token) if token else 0})")
             return token
-        raise HTTPException(502, detail="Token Vault exchange succeeded but payload missing access_token")
+        else:
+            print(f"DEBUG: Token Vault Exchange FAILED - {res.status_code}: {res.text[:300]}")
+    except Exception as e:
+        print(f"DEBUG: Token Vault Exchange EXCEPTION - {str(e)}")
+    return None
 
-    if res.status_code == 400:
-        print(f"Token Vault exchange invalid request: {res.text}")
-    if res.status_code in [401, 403]:
-        print(f"Token Vault exchange denied: {res.text}")
-    if res.status_code == 429:
-        raise HTTPException(429, detail="Token Vault rate limit exceeded")
-
-    # Fallback to explicit identity retrieval from Auth0 vault (management API) only if exchange fails.
-    # This path is last-resort and kept for compatibility when Auth0 token exchange is misconfigured.
+def fetch_token_from_identities(user_context, service):
+    """Retrieve external provider token from Auth0 Management API."""
     mgmt_token = get_management_token()
     if not mgmt_token:
         return None
 
+    domain = os.getenv("AUTH0_DOMAIN")
     user_id = user_context["sub"]
     url = f"https://{domain}/api/v2/users/{user_id}"
     res = requests.get(url, headers={"Authorization": f"Bearer {mgmt_token}"})
+    
     if res.status_code == 200:
+        connection_name = SERVICE_CONNECTION_MAP.get(service, service)
         for identity in res.json().get("identities", []):
             if identity.get("connection") == connection_name:
-                return identity.get("access_token")
-
+                t = identity.get("access_token")
+                print(f"DEBUG: Found {service} token in Auth0 Identity (mask: {t[:4]}...{t[-4:]})")
+                return t
     return None
 
+def save_integration(user_id, service, token_ref):
+    """Save an integration record. If token_ref is 'auth0-vault-linked', try to capture the raw token."""
+    db = SessionLocal()
+    try:
+        # Step: If it's a vault link, try to upgrade it to a raw token immediately
+        if token_ref == "auth0-vault-linked":
+            user_context = {"sub": user_id}
+            raw_token = fetch_token_from_identities(user_context, service)
+            if raw_token:
+                token_ref = raw_token
+                print(f"DEBUG: Successfully upgraded vault-link to raw token for {service}")
 
-@rate_limited(max_per_minute=30)
-@retry(tries=3, backoff=0.3)
+        existing = db.query(Integration).filter(Integration.user_id == user_id, Integration.service == service).first()
+        if existing:
+            existing.token_reference = token_ref
+            existing.connected_at = datetime.utcnow()
+        else:
+            new_item = Integration(user_id=user_id, service=service, token_reference=token_ref)
+            db.add(new_item)
+        db.commit()
+    finally:
+        db.close()
+    return True
+
 def revoke_token_from_vault(user_context, connection_name):
-    """Revoke linked identity from Auth0 to remove any provider tokens."""
-    user_id = user_context["sub"]
+    """Unlink an identity from the user's Auth0 profile."""
     mgmt_token = get_management_token()
     if not mgmt_token:
         return False
 
     domain = os.getenv("AUTH0_DOMAIN")
-    provider = connection_name.split("-")[0]
-
+    user_id = user_context["sub"]
     url = f"https://{domain}/api/v2/users/{user_id}"
     res = requests.get(url, headers={"Authorization": f"Bearer {mgmt_token}"})
     if res.status_code == 200:
         for identity in res.json().get("identities", []):
             if identity.get("connection") == connection_name:
-                sec_provider = identity.get("provider")
-                sec_user_id = identity.get("user_id")
-                del_url = f"https://{domain}/api/v2/users/{user_id}/identities/{sec_provider}/{sec_user_id}"
+                provider = identity.get("provider")
+                ident_user_id = identity.get("user_id")
+                del_url = f"https://{domain}/api/v2/users/{user_id}/identities/{provider}/{ident_user_id}"
                 requests.delete(del_url, headers={"Authorization": f"Bearer {mgmt_token}"})
                 return True
     return False
 
-
 def get_integration_token(user_context, service):
+    """High-level function for tools to get a token."""
     token = get_token_from_vault(user_context, service)
-    if not token:
-        db = SessionLocal()
-        user_id = user_context["sub"]
-        integration = db.query(Integration).filter(
-            Integration.user_id == user_id,
-            Integration.service == service
-        ).first()
-        db.close()
-        if integration and integration.token_reference:
-            return "auth0-vault-linked"
     return token
-
-
-def save_integration(user_id, service, connection_reference):
-    if not connection_reference or _is_raw_token(connection_reference):
-        raise HTTPException(400, detail="Raw tokens are not allowed in integration references")
-
-    db = SessionLocal()
-    integration = db.query(Integration).filter(
-        Integration.user_id == user_id,
-        Integration.service == service
-    ).first()
-
-    if integration:
-        integration.token_reference = connection_reference
-    else:
-        integration = Integration(
-            user_id=user_id,
-            service=service,
-            token_reference=connection_reference
-        )
-        db.add(integration)
-
-    db.commit()
-    db.close()

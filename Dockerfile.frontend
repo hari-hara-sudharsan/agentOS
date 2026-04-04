@@ -1,0 +1,21 @@
+# Frontend Dockerfile (AgentOS Next.js)
+FROM node:20-slim AS build
+WORKDIR /app
+COPY frontend/package.json frontend/package-lock.json* ./
+COPY frontend/yarn.lock* ./
+RUN npm install
+
+COPY frontend .
+RUN npm run build
+
+FROM node:20-slim AS final
+WORKDIR /app
+COPY --from=build /app/.next .next
+COPY --from=build /app/public public
+COPY --from=build /app/package.json package.json
+COPY --from=build /app/next.config.mjs next.config.mjs
+COPY --from=build /app/node_modules node_modules
+
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["npm", "run", "start"]

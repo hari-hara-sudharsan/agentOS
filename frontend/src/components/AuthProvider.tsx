@@ -21,36 +21,33 @@ const AUDIENCE  = process.env.NEXT_PUBLIC_AUTH0_AUDIENCE
  * Full-spectrum access grants for autonomous agent operation.
  * Each scope is a loaded weapon — handle accordingly.
  */
-const GOOGLE_SCOPES = [
-  // ── GMAIL ───────────────────────────────────────────────────────────────
-  "https://www.googleapis.com/auth/gmail.readonly",          // Read all mail
-  "https://www.googleapis.com/auth/gmail.send",              // Send as operator
-  "https://www.googleapis.com/auth/gmail.compose",           // Compose & draft
-  "https://www.googleapis.com/auth/gmail.modify",            // Label, archive, delete
-  "https://www.googleapis.com/auth/gmail.labels",            // Manage label taxonomy
-
-  // ── CALENDAR ────────────────────────────────────────────────────────────
-  "https://www.googleapis.com/auth/calendar",                // Full calendar R/W
-  "https://www.googleapis.com/auth/calendar.events",         // Create & mutate events
-
-  // ── DRIVE ───────────────────────────────────────────────────────────────
-  "https://www.googleapis.com/auth/drive",                   // Full Drive access
-  "https://www.googleapis.com/auth/drive.file",              // Per-file R/W
-  "https://www.googleapis.com/auth/drive.metadata",          // Read all metadata
-  "https://www.googleapis.com/auth/drive.readonly",          // Enumerate all files
-
-  // ── CONTACTS ────────────────────────────────────────────────────────────
-  "https://www.googleapis.com/auth/contacts",                // Full contacts R/W
-  "https://www.googleapis.com/auth/contacts.readonly",       // Read entire contact graph
-
-  // ── IDENTITY ────────────────────────────────────────────────────────────
-  "https://www.googleapis.com/auth/userinfo.email",
-  "https://www.googleapis.com/auth/userinfo.profile",
-].join(" ")
-
 const OPENID_SCOPES = "openid profile email offline_access"
 
-const ALL_SCOPES = `${OPENID_SCOPES} ${GOOGLE_SCOPES}`
+// Google scopes are requested per-integration, not at Auth0 level
+// This prevents "consent required" errors during initial login
+const GOOGLE_SCOPES = [
+  // Gmail
+  "https://www.googleapis.com/auth/gmail.readonly",
+  "https://www.googleapis.com/auth/gmail.send",
+  "https://www.googleapis.com/auth/gmail.compose",
+  "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/gmail.labels",
+  // Calendar
+  "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/calendar.events",
+  // Drive
+  "https://www.googleapis.com/auth/drive",
+  "https://www.googleapis.com/auth/drive.file",
+  "https://www.googleapis.com/auth/drive.metadata",
+  "https://www.googleapis.com/auth/drive.readonly",
+  // Contacts
+  "https://www.googleapis.com/auth/contacts",
+  "https://www.googleapis.com/auth/contacts.readonly",
+]
+
+// For initial Auth0 auth, request ALL scopes to ensure the identity is fully authorized
+// This prevents "Metadata Only" errors by forcing consent during primary login
+const ALL_SCOPES = `${OPENID_SCOPES} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events`
 
 /** Redirect target — window-safe for SSR/SSG */
 const REDIRECT_URI =
@@ -73,26 +70,21 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       useRefreshTokensFallback={true}
 
       authorizationParams={{
-        audience:         AUDIENCE,
-        redirect_uri:     REDIRECT_URI,
-        scope:            ALL_SCOPES,
+        audience:      AUDIENCE,
+        redirect_uri:  REDIRECT_URI,
+        scope:         ALL_SCOPES,
 
         /**
-         * CONSENT STRATEGY
-         * prompt=consent  → force full scope consent screen every time.
-         * access_type=offline → demand refresh token from Google OAuth.
-         * These together ensure the agent never loses its grip.
+         * LOGIN PROMPT
+         * - "login": Always show login screen (no SSO cache)
+         * - "none": Use SSO if available, error if not authenticated
+         * - "consent": Force consent screen (commented out)
+         * 
+         * Using default (no prompt) allows smooth SSO + incremental consent
+         * per integration (Gmail/Calendar scopes requested when connecting)
          */
-        connection_scope: GOOGLE_SCOPES,
-        access_type:      "offline",
-        prompt:           "consent",
-
-        /**
-         * RESPONSE CONFIG
-         * response_type=code → authorization code flow (PKCE).
-         * Most secure path for token exchange.
-         */
-        response_type:    "code",
+        access_type:   "offline",
+        response_type: "code",
       }}
 
       /**
@@ -103,20 +95,34 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       sessionCheckExpiryDays={7}
 
       /**
-       * ERROR BOUNDARY
-       * Surface auth failures loudly so the agent layer can handle
-       * them explicitly rather than silently degrading.
+       * ERROR BOUNDARY & REDIRECT
+       * After Auth0 completes authorization, redirect to the app.
+       * Maintains return state from before login attempt.
        */
-      onRedirectCallback={(appState, user) => {
+      onRedirectCallback={(appState) => {
         if (process.env.NODE_ENV === "development") {
-          console.groupCollapsed("[AGENT_OS] Auth callback")
+          console.groupCollapsed("[AGENT_OS] Auth redirect callback")
           console.log("AppState:", appState)
-          console.log("User:",     user)
           console.groupEnd()
         }
+        // Redirect to the intended page or dashboard
+        const returnTo = appState?.returnTo || "/dashboard"
+        window.location.replace(returnTo)
       }}
     >
       {children}
     </Auth0Provider>
   )
+}
+
+/**
+ * Export Google scopes for use in integration endpoints
+ * These are requested per-integration to avoid consent fatigue
+ */
+export const INTEGRATION_SCOPES = {
+  GMAIL: GOOGLE_SCOPES.filter(s => s.includes("gmail")).join(" "),
+  CALENDAR: GOOGLE_SCOPES.filter(s => s.includes("calendar")).join(" "),
+  DRIVE: GOOGLE_SCOPES.filter(s => s.includes("drive")).join(" "),
+  CONTACTS: GOOGLE_SCOPES.filter(s => s.includes("contacts")).join(" "),
+  ALL_GOOGLE: GOOGLE_SCOPES.join(" "),
 }
