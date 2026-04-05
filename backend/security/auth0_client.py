@@ -5,6 +5,9 @@ from database.db import SessionLocal
 from database.models import Approval
 import uuid
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _cleanup_expired_approvals():
@@ -18,13 +21,31 @@ def _cleanup_expired_approvals():
         db.close()
 
 
+def _run_consent_guardian_analysis(tool: str, params: dict):
+    """Run Consent Guardian analysis with OpenClaw if available."""
+    try:
+        from agents.consent_guardian import analyze_action_with_openclaw
+        analysis = analyze_action_with_openclaw(tool, params)
+        return analysis
+    except Exception as e:
+        logger.warning(f"Consent Guardian analysis failed: {e}")
+        return None
+
+
 def create_pending_approval(user_context, tool, params):
-    """Create a new approval request in the database."""
+    """
+    Create a new approval request in the database.
+    Enhanced with Consent Guardian AI analysis for intelligent explanations.
+    """
     _cleanup_expired_approvals()
 
     approval_id = str(uuid.uuid4())
     user_id = user_context.get("sub")
+    
+    # Run Consent Guardian analysis
+    guardian_analysis = _run_consent_guardian_analysis(tool, params)
 
+    # Build action description
     if tool == "create_calendar_event":
         title = params.get("title", "Untitled event")
         action = f"Create calendar event '{title}'"
@@ -50,10 +71,40 @@ def create_pending_approval(user_context, tool, params):
     else:
         action = f"Execute {tool}"
 
-    binding_message = (
-        f"🔐 STEP-UP AUTH REQUIRED: Agent requests high-stakes action: {action}. "
-        "Please review and approve to continue."
-    )
+    # Use AI explanation if available, fallback to standard message
+    if guardian_analysis:
+        ai_explanation = guardian_analysis.plain_english_explanation
+        risk_level = guardian_analysis.risk_level.value
+        recommended_scopes = guardian_analysis.minimal_scopes
+        analysis_json = json.dumps(guardian_analysis.to_dict())
+        confidence = str(guardian_analysis.analysis_confidence)
+        
+        # Build enhanced binding message with AI explanation
+        risk_emoji = {
+            "low": "🟢",
+            "medium": "🟡", 
+            "high": "🟠",
+            "critical": "🔴"
+        }.get(risk_level, "⚪")
+        
+        binding_message = (
+            f"🔐 STEP-UP AUTH REQUIRED\n\n"
+            f"🤖 AI ANALYSIS (Consent Guardian):\n"
+            f"{ai_explanation}\n\n"
+            f"Risk Level: {risk_emoji} {risk_level.upper()}\n\n"
+            f"Action: {action}"
+        )
+    else:
+        ai_explanation = None
+        risk_level = None
+        recommended_scopes = []
+        analysis_json = None
+        confidence = None
+        
+        binding_message = (
+            f"🔐 STEP-UP AUTH REQUIRED: Agent requests high-stakes action: {action}. "
+            "Please review and approve to continue."
+        )
 
     db = SessionLocal()
     try:
@@ -65,10 +116,18 @@ def create_pending_approval(user_context, tool, params):
             binding_message=binding_message,
             approved=False,
             created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(hours=24)  # Extended to 24 hours
+            expires_at=datetime.utcnow() + timedelta(hours=24),
+            # Consent Guardian fields
+            openclaw_analysis=analysis_json,
+            risk_level=risk_level,
+            recommended_scopes=json.dumps(recommended_scopes) if recommended_scopes else None,
+            ai_explanation=ai_explanation,
+            analysis_confidence=confidence
         )
         db.add(approval)
         db.commit()
+        
+        logger.info(f"Created approval {approval_id} for tool {tool}, risk_level={risk_level}")
     finally:
         db.close()
 
@@ -76,7 +135,7 @@ def create_pending_approval(user_context, tool, params):
 
 
 def get_pending_approvals(user_context):
-    """Get all pending (unapproved) approvals for a user."""
+    """Get all pending (unapproved) approvals for a user with Consent Guardian data."""
     _cleanup_expired_approvals()
     user_id = user_context.get("sub")
     
@@ -94,7 +153,13 @@ def get_pending_approvals(user_context):
                 "binding_message": ap.binding_message,
                 "created_at": ap.created_at.isoformat(),
                 "expires_at": ap.expires_at.isoformat(),
-                "approved": ap.approved
+                "approved": ap.approved,
+                # Consent Guardian fields
+                "risk_level": ap.risk_level,
+                "ai_explanation": ap.ai_explanation,
+                "recommended_scopes": json.loads(ap.recommended_scopes) if ap.recommended_scopes else [],
+                "analysis_confidence": float(ap.analysis_confidence) if ap.analysis_confidence else None,
+                "has_ai_analysis": ap.openclaw_analysis is not None
             }
             for ap in approvals
         ]
@@ -120,7 +185,12 @@ def get_approval_history(user_context, limit=50):
                 "approved": ap.approved,
                 "approved_at": ap.approved_at.isoformat() if ap.approved_at else None,
                 "created_at": ap.created_at.isoformat(),
-                "expires_at": ap.expires_at.isoformat()
+                "expires_at": ap.expires_at.isoformat(),
+                # Consent Guardian fields
+                "risk_level": ap.risk_level,
+                "ai_explanation": ap.ai_explanation,
+                "recommended_scopes": json.loads(ap.recommended_scopes) if ap.recommended_scopes else [],
+                "has_ai_analysis": ap.openclaw_analysis is not None
             }
             for ap in approvals
         ]
@@ -129,7 +199,7 @@ def get_approval_history(user_context, limit=50):
 
 
 def approve_pending_approval(approval_id, user_context):
-    """Mark an approval as approved."""
+    """Mark an approval as approved and track Consent Guardian decision."""
     _cleanup_expired_approvals()
     user_id = user_context.get("sub")
 
@@ -147,18 +217,33 @@ def approve_pending_approval(approval_id, user_context):
         approval.approved_at = datetime.utcnow()
         db.commit()
         
+        # Track Consent Guardian decision metric
+        if approval.risk_level:
+            try:
+                from utils.metrics import track_consent_guardian_decision
+                latency = (approval.approved_at - approval.created_at).total_seconds()
+                track_consent_guardian_decision(
+                    tool=approval.tool,
+                    risk_level=approval.risk_level,
+                    decision="approved",
+                    latency=latency
+                )
+            except Exception as e:
+                logger.warning(f"Failed to track consent guardian decision: {e}")
+        
         return {
             "approval_id": approval.approval_id,
             "tool": approval.tool,
             "approved": True,
-            "approved_at": approval.approved_at.isoformat()
+            "approved_at": approval.approved_at.isoformat(),
+            "recommended_scopes": json.loads(approval.recommended_scopes) if approval.recommended_scopes else []
         }
     finally:
         db.close()
 
 
 def check_approval_status(approval_id, user_context):
-    """Check if an approval exists and its status."""
+    """Check if an approval exists and its status, including recommended scopes."""
     user_id = user_context.get("sub")
     
     db = SessionLocal()
@@ -175,7 +260,11 @@ def check_approval_status(approval_id, user_context):
             "approved": approval.approved,
             "tool": approval.tool,
             "params": json.loads(approval.params) if approval.params else {},
-            "binding_message": approval.binding_message
+            "binding_message": approval.binding_message,
+            # Consent Guardian fields for Token Vault scope enforcement
+            "recommended_scopes": json.loads(approval.recommended_scopes) if approval.recommended_scopes else [],
+            "risk_level": approval.risk_level,
+            "ai_explanation": approval.ai_explanation
         }
     finally:
         db.close()

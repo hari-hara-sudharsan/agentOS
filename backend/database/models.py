@@ -77,6 +77,7 @@ class Approval(Base):
     """
     Human-in-the-loop approvals for high-stakes agent actions.
     Persisted to database (not in-memory) to survive restarts.
+    Enhanced with Consent Guardian analysis for AI-powered explanations.
     """
     __tablename__ = "approvals"
 
@@ -98,4 +99,15 @@ class Approval(Base):
     
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    expires_at = Column(DateTime)  # 30-minute expiration
+    expires_at = Column(DateTime)  # 24-hour expiration
+    
+    # Consent Guardian analysis fields (JSON-serialized)
+    openclaw_analysis = Column(Text, nullable=True)  # Full analysis JSON from Consent Guardian
+    
+    risk_level = Column(String, nullable=True)  # low, medium, high, critical
+    
+    recommended_scopes = Column(Text, nullable=True)  # JSON list of minimal scopes recommended
+    
+    ai_explanation = Column(Text, nullable=True)  # Plain English explanation from OpenClaw
+    
+    analysis_confidence = Column(String, nullable=True)  # Analysis confidence score

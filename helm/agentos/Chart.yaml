@@ -1,0 +1,19 @@
+apiVersion: v2
+name: agentos
+description: AgentOS - Secure Sovereign AI with Auth0 Token Vault
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ai
+  - agents
+  - auth0
+  - token-vault
+  - browser-automation
+home: https://github.com/your-org/agentos
+sources:
+  - https://github.com/your-org/agentos
+maintainers:
+  - name: AgentOS Team
+    email: team@agentos.dev
+dependencies: []

@@ -118,6 +118,38 @@ OPENCLAW_ACTIVE_SESSIONS = Gauge(
 )
 
 # =====================================
+# Consent Guardian Metrics
+# =====================================
+CONSENT_GUARDIAN_ACTIVATIONS = Counter(
+    'agentos_consent_guardian_activations_total',
+    'Total Consent Guardian activations',
+    ['tool', 'risk_level', 'analysis_type'],
+    registry=registry
+)
+
+CONSENT_GUARDIAN_DECISIONS = Counter(
+    'agentos_consent_guardian_decisions_total',
+    'User decisions after Consent Guardian analysis',
+    ['tool', 'risk_level', 'decision'],
+    registry=registry
+)
+
+CONSENT_GUARDIAN_LATENCY = Histogram(
+    'agentos_consent_guardian_latency_seconds',
+    'Consent Guardian analysis latency',
+    ['tool'],
+    buckets=(0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+    registry=registry
+)
+
+CONSENT_GUARDIAN_SCOPE_REDUCTION = Counter(
+    'agentos_consent_guardian_scope_reductions_total',
+    'Number of times Consent Guardian recommended reduced scopes',
+    ['tool', 'service'],
+    registry=registry
+)
+
+# =====================================
 # Browser Automation Metrics
 # =====================================
 BROWSER_TASKS_TOTAL = Counter(
@@ -245,6 +277,31 @@ def track_browser_task(task_type: str, status: str, duration: float):
     """Track browser automation task"""
     BROWSER_TASKS_TOTAL.labels(task_type=task_type, status=status).inc()
     BROWSER_TASK_DURATION.labels(task_type=task_type).observe(duration)
+
+
+def track_consent_guardian_activation(tool: str, risk_level: str, analysis_type: str):
+    """Track Consent Guardian activation"""
+    CONSENT_GUARDIAN_ACTIVATIONS.labels(
+        tool=tool, 
+        risk_level=risk_level, 
+        analysis_type=analysis_type
+    ).inc()
+
+
+def track_consent_guardian_decision(tool: str, risk_level: str, decision: str, latency: float = 0):
+    """Track user decision after Consent Guardian analysis"""
+    CONSENT_GUARDIAN_DECISIONS.labels(
+        tool=tool, 
+        risk_level=risk_level, 
+        decision=decision
+    ).inc()
+    if latency > 0:
+        CONSENT_GUARDIAN_LATENCY.labels(tool=tool).observe(latency)
+
+
+def track_consent_guardian_scope_reduction(tool: str, service: str):
+    """Track when Consent Guardian recommends reduced scopes"""
+    CONSENT_GUARDIAN_SCOPE_REDUCTION.labels(tool=tool, service=service).inc()
 
 
 def set_pending_approvals(count: int):
