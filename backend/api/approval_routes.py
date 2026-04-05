@@ -3,7 +3,8 @@ from security.auth0_client import (
     get_current_user, 
     get_pending_approvals, 
     approve_pending_approval,
-    get_approval_history
+    get_approval_history,
+    check_approval_status
 )
 
 router = APIRouter()
@@ -19,6 +20,20 @@ def list_approvals(user=Depends(get_current_user)):
 def list_approval_history(user=Depends(get_current_user), limit: int = 50):
     """Get approval history (both approved and pending) for the current user."""
     return get_approval_history(user, limit)
+
+
+@router.get("/status/{approval_id}")
+def get_status(approval_id: str, user=Depends(get_current_user)):
+    """Check the status of a specific approval."""
+    status = check_approval_status(approval_id, user)
+    if status is None:
+        return {"found": False, "approved": False, "expired": True}
+    return {
+        "found": True,
+        "approved": status.get("approved", False),
+        "expired": status.get("expired", False),
+        "binding_message": status.get("binding_message")
+    }
 
 
 @router.post("/approve/{approval_id}")
