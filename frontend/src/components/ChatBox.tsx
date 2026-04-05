@@ -1,22 +1,103 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
 import MessageInput from "./MessageInput"
 import ExecutionPanel from "./ExecutionPanel"
 import WorkflowGraph from "./WorkflowGraph"
+import { API_BASE_URL } from "../lib/api"
+
+// Session storage keys for state persistence
+const STORAGE_KEYS = {
+  steps: "agentos_steps",
+  goal: "agentos_goal",
+  tick: "agentos_tick"
+}
 
 export default function ChatBox() {
-  const [steps, setSteps] = useState<any[]>([])
-  const [goal, setGoal] = useState("")
-  const [tick, setTick] = useState(0)
+  // Initialize state from sessionStorage if available
+  const [steps, setSteps] = useState<any[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem(STORAGE_KEYS.steps)
+      return saved ? JSON.parse(saved) : []
+    }
+    return []
+  })
+  const [goal, setGoal] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem(STORAGE_KEYS.goal) || ""
+    }
+    return ""
+  })
+  const [tick, setTick] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem(STORAGE_KEYS.tick)
+      return saved ? parseInt(saved, 10) : 0
+    }
+    return 0
+  })
   const { getAccessTokenSilently } = useAuth0()
+
+  // Persist state to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEYS.steps, JSON.stringify(steps))
+  }, [steps])
+
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEYS.goal, goal)
+  }, [goal])
+
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEYS.tick, tick.toString())
+  }, [tick])
+
+  // Check for pending approvals that have been approved
+  const checkAndResumeApprovals = useCallback(async () => {
+    const pendingSteps = steps.filter(s => s.status === "awaiting_consent" && s.approval_id)
+    
+    if (pendingSteps.length === 0) return
+
+    try {
+      const token = await getAccessTokenSilently()
+      
+      for (const step of pendingSteps) {
+        // Check if this approval was granted
+        const res = await fetch(`${API_BASE_URL}/api/approvals/status/${step.approval_id}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+        
+        if (res.ok) {
+          const data = await res.json()
+          if (data.approved) {
+            // Auto-resume this task!
+            handleResume(step.tool, step.task)
+          }
+        }
+      }
+    } catch (e) {
+      console.log("Error checking approvals:", e)
+    }
+  }, [steps, getAccessTokenSilently])
+
+  // Check for approved tasks when component mounts or steps change
+  useEffect(() => {
+    checkAndResumeApprovals()
+  }, [])  // Only on mount - we'll also trigger this after navigation
+
+  // Poll for approval status every 5 seconds for pending items
+  useEffect(() => {
+    const hasPending = steps.some(s => s.status === "awaiting_consent")
+    if (!hasPending) return
+
+    const interval = setInterval(checkAndResumeApprovals, 5000)
+    return () => clearInterval(interval)
+  }, [steps, checkAndResumeApprovals])
 
   async function handleResume(tool: string, task: any) {
     updateStep(tool, "running");
     try {
       const token = await getAccessTokenSilently();
-      const res = await fetch("http://localhost:8000/api/agent/resume-task", {
+      const res = await fetch(`${API_BASE_URL}/api/agent/resume-task`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,6 +125,15 @@ export default function ChatBox() {
     setSteps(prev =>
       prev.map(s => s.tool === tool ? { ...s, status, result } : s)
     )
+  }
+
+  function clearSession() {
+    setSteps([])
+    setGoal("")
+    setTick(0)
+    sessionStorage.removeItem(STORAGE_KEYS.steps)
+    sessionStorage.removeItem(STORAGE_KEYS.goal)
+    sessionStorage.removeItem(STORAGE_KEYS.tick)
   }
 
   const activeCount  = steps.filter(s => s.status === "running").length
@@ -309,6 +399,22 @@ export default function ChatBox() {
           color: rgba(148,163,184,0.45);
         }
 
+        /* ══ CLEAR SESSION BUTTON ══ */
+        .cb-clear-btn {
+          font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase;
+          padding: 4px 10px; border-radius: 4px;
+          border: 1px solid var(--border);
+          color: rgba(148,163,184,0.65);
+          background: transparent;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .cb-clear-btn:hover {
+          border-color: var(--red);
+          color: var(--red);
+          background: rgba(239,68,68,0.1);
+        }
+
         /* ══ EMPTY GRAPH STATE ══ */
         .cb-graph-empty {
           display: flex; flex-direction: column; align-items: center;
@@ -341,6 +447,11 @@ export default function ChatBox() {
             <span className="cb-titlebar-id">// agent_runtime · session</span>
           </div>
           <div className="cb-titlebar-right">
+            {steps.length > 0 && (
+              <button className="cb-clear-btn" onClick={clearSession}>
+                New Session
+              </button>
+            )}
             <div className="cb-live">
               <div className="cb-live-dot" />
               Live
