@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
+import { API_BASE_URL } from "../lib/api"
 
 export default function IntegrationCard({service}:any){
   const { getAccessTokenSilently, loginWithPopup } = useAuth0()
@@ -61,7 +62,7 @@ export default function IntegrationCard({service}:any){
               console.log(`[AgentOS] Got access token, length: ${auth0Token?.length || 0}`)
               
               console.log(`[AgentOS] Calling backend /api/integrations/connect/${service.service}...`)
-              const res = await fetch(`http://localhost:8000/api/integrations/connect/${service.service}`, {
+              const res = await fetch(`${API_BASE_URL}/api/integrations/connect/${service.service}`, {
                   method: "POST",
                   headers: {
                       "Authorization": `Bearer ${auth0Token}`,
@@ -98,7 +99,7 @@ export default function IntegrationCard({service}:any){
   const disconnect = async () => {
       try {
           const auth0Token = await getAccessTokenSilently()
-          const res = await fetch(`http://localhost:8000/api/integrations/disconnect/${service.service}`, {
+          const res = await fetch(`${API_BASE_URL}/api/integrations/disconnect/${service.service}`, {
               method: "DELETE",
               headers: { "Authorization": `Bearer ${auth0Token}` }
           })
@@ -118,7 +119,7 @@ export default function IntegrationCard({service}:any){
         
         try {
             const auth0Token = await getAccessTokenSilently()
-            const res = await fetch(`http://localhost:8000/api/integrations/connect/${service.service}`, {
+            const res = await fetch(`${API_BASE_URL}/api/integrations/connect/${service.service}`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${auth0Token}`,
@@ -146,7 +147,7 @@ export default function IntegrationCard({service}:any){
 
     try {
         const auth0Token = await getAccessTokenSilently()
-        const res = await fetch(`http://localhost:8000/api/integrations/connect/${service.service}`, {
+        const res = await fetch(`${API_BASE_URL}/api/integrations/connect/${service.service}`, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${auth0Token}`,
