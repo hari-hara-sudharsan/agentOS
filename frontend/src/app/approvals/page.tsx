@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
+import { API_BASE_URL } from "../../lib/api"
 
 interface Approval {
   approval_id: string
@@ -20,6 +21,8 @@ const TOOL_ICONS: Record<string, string> = {
   send_slack_message: "💬",
   browser_login: "🔐",
   browser_download_file: "⬇️",
+  complete_leetcode_daily: "💻",
+  get_leetcode_daily_problem: "📝",
   default: "⚡"
 }
 
@@ -51,14 +54,14 @@ function Approvals() {
       const token = await getAccessTokenSilently()
       
       // Fetch pending approvals
-      const pendingRes = await fetch("http://localhost:8000/api/approvals", {
+      const pendingRes = await fetch(`${API_BASE_URL}/api/approvals`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const pendingData = await pendingRes.json()
       setPendingApprovals(Array.isArray(pendingData) ? pendingData : [])
       
       // Fetch approval history
-      const historyRes = await fetch("http://localhost:8000/api/approvals/history", {
+      const historyRes = await fetch(`${API_BASE_URL}/api/approvals/history`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const historyData = await historyRes.json()
@@ -88,7 +91,7 @@ function Approvals() {
     setApproving(id)
     try {
       const token = await getAccessTokenSilently()
-      await fetch(`http://localhost:8000/api/approvals/approve/${id}`, {
+      await fetch(`${API_BASE_URL}/api/approvals/approve/${id}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       })

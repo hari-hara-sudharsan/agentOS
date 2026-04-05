@@ -1,0 +1,16 @@
+# Grafana Dashboard Provisioning
+# Auto-loads dashboards from filesystem
+
+apiVersion: 1
+
+providers:
+  - name: 'AgentOS Dashboards'
+    orgId: 1
+    folder: 'AgentOS'
+    folderUid: 'agentos'
+    type: file
+    disableDeletion: false
+    editable: true
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards

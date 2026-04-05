@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
+import { API_BASE_URL } from "../lib/api"
 
 export default function MessageInput({ addStep, updateStep, setGoal, setSteps }: any) {
 
@@ -34,7 +35,7 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
             const token = await getAccessTokenSilently()
 
             const response = await fetch(
-                "http://localhost:8000/api/agent/run-task-stream",
+                `${API_BASE_URL}/api/agent/run-task-stream`,
                 {
                     method: "POST",
                     headers: {
@@ -89,13 +90,23 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
                     if (event.event === "step_failed")
                         updateStep(event.tool, "failed", event.error)
 
-                    if (event.event === "awaiting_consent" || event.event === "pending_approval")
-                        updateStep(event.tool, "awaiting_consent", {
-                            task: event.task,
-                            approval_id: event.approval_id,
-                            binding_message: event.binding_message,
-                            error: "SECURITY HALT: This high-stakes action requires explicit human-in-the-loop consent. Please approve to continue."
-                        })
+                    if (event.event === "awaiting_consent" || event.event === "pending_approval") {
+                        // Store task and approval_id at top level for resumption
+                        setSteps((prev: any[]) => 
+                            prev.map(s => s.tool === event.tool ? { 
+                                ...s, 
+                                status: "awaiting_consent",
+                                task: event.task,
+                                approval_id: event.approval_id,
+                                result: {
+                                    task: event.task,
+                                    approval_id: event.approval_id,
+                                    binding_message: event.binding_message,
+                                    error: "SECURITY HALT: This high-stakes action requires explicit human-in-the-loop consent. Please approve to continue."
+                                }
+                            } : s)
+                        )
+                    }
 
                     if (event.event === "execution_finished")
                         setGoal((prev: string) => prev + " (Completed)")

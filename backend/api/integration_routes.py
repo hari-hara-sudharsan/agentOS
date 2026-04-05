@@ -31,7 +31,7 @@ def list_integrations(user=Depends(get_current_user)):
         "slack": {
             "name": "Slack",
             "scopes": ["chat:write", "channels:read"],
-            "description": "Send and receive Slack messages through the agent."
+            "description": "Send and re Slack messages through the agent."
         },
         "discord": {
             "name": "Discord",

@@ -17,3 +17,14 @@ def take_screenshot(page, name="debug"):
     page.screenshot(path=path)
 
     return path
+
+
+async def take_screenshot_async(page, name="debug"):
+    """Async version of take_screenshot for async Playwright"""
+    timestamp = int(time.time())
+
+    path = f"screenshots/{name}_{timestamp}.png"
+
+    await page.screenshot(path=path)
+
+    return path

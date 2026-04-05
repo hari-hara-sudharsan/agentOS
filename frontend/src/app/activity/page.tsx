@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
+import { API_BASE_URL } from "../../lib/api"
 
 type ActivityRow = {
   id: string
@@ -97,10 +98,10 @@ function Activity() {
         
         // Fetch both activity and summary in parallel
         const [activityRes, summaryRes] = await Promise.all([
-          fetch("http://localhost:8000/api/activity", {
+          fetch(`${API_BASE_URL}/api/activity`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8000/api/activity/summary", {
+          fetch(`${API_BASE_URL}/api/activity/summary`, {
             headers: { Authorization: `Bearer ${token}` },
           })
         ])

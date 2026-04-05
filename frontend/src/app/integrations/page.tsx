@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import IntegrationCard from "../../components/IntegrationCard"
 import { useAuth0 } from "@auth0/auth0-react"
 import { withAuthenticationRequired } from "@auth0/auth0-react"
+import { API_BASE_URL } from "../../lib/api"
 
 const DEFAULT_SERVICES = [
   { service: "google", name: "Google", scopes: ["gmail.readonly", "gmail.compose", "drive.file", "calendar.events"], description: "Unified Google access for Gmail/Drive/Calendar." },
@@ -21,7 +22,7 @@ function Integrations() {
     async function loadServices() {
       try {
         const token = await getAccessTokenSilently()
-        const res = await fetch("http://localhost:8000/api/integrations", {
+        const res = await fetch(`${API_BASE_URL}/api/integrations`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
