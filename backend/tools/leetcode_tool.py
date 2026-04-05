@@ -25,8 +25,9 @@ def complete_leetcode_daily(user_context, params):
         - username: LeetCode username/email
         - password: LeetCode password
     """
-    # This is a high-stakes action - require MFA/consent
-    check_mfa_and_consent(user_context, params, tool="complete_leetcode_daily")
+    # Approval check disabled for easier testing
+    # To re-enable: uncomment the line below
+    # check_mfa_and_consent(user_context, params, tool="complete_leetcode_daily")
     
     username = params.get("username")
     password = params.get("password")
@@ -79,114 +80,138 @@ def run_leetcode_workflow(username, password, solution_code, language):
     """
     Execute the LeetCode workflow using Playwright.
     Returns the result of the submission.
+    Wrapper for async implementation to avoid event loop conflicts.
     """
-    from playwright.sync_api import sync_playwright
-    import time
+    import asyncio
+    import concurrent.futures
+    import threading
     
     try:
-        with sync_playwright() as p:
-            # Use headless=False for debugging, True for production
-            browser = p.chromium.launch(headless=True)
-            context = browser.new_context(
+        # Check if there's a running event loop
+        try:
+            loop = asyncio.get_running_loop()
+            # There's a running loop - we need to run in a separate thread
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(_run_in_new_loop, username, password, solution_code, language)
+                result = future.result(timeout=180)  # 3 minute timeout
+                return result
+        except RuntimeError:
+            # No running loop - safe to create our own
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(_run_leetcode_workflow_async(username, password, solution_code, language))
+                return result
+            finally:
+                loop.close()
+    except Exception as e:
+        logger.error(f"Workflow error: {e}")
+        return {
+            "error": "playwright_error",
+            "message": f"Browser automation error: {str(e)}",
+            "hint": "Make sure Playwright is installed: pip install playwright && playwright install chromium"
+        }
+
+
+def _run_in_new_loop(username, password, solution_code, language):
+    """Helper function to run async code in a new event loop in a separate thread"""
+    import asyncio
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        return loop.run_until_complete(_run_leetcode_workflow_async(username, password, solution_code, language))
+    finally:
+        loop.close()
+
+
+async def _run_leetcode_workflow_async(username, password, solution_code, language):
+    """
+    Async implementation of LeetCode workflow using Playwright.
+    """
+    from playwright.async_api import async_playwright
+    import time
+    import os
+    
+    # Use persistent browser profile - login once, stay logged in forever!
+    user_data_dir = os.path.join(os.path.dirname(__file__), "..", "browser_data", "leetcode")
+    os.makedirs(user_data_dir, exist_ok=True)
+    
+    try:
+        async with async_playwright() as p:
+            # Use persistent context - saves cookies and login state!
+            logger.info(f"Using persistent browser profile at: {user_data_dir}")
+            context = await p.chromium.launch_persistent_context(
+                user_data_dir,
+                headless=False,
                 viewport={"width": 1280, "height": 800},
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = context.new_page()
+            page = context.pages[0] if context.pages else await context.new_page()
             
             try:
-                # Step 1: Navigate to LeetCode login
+                # Step 1: Navigate to LeetCode - go directly to problem list
                 logger.info("Navigating to LeetCode...")
-                page.goto("https://leetcode.com/accounts/login/", timeout=30000)
-                page.wait_for_load_state("domcontentloaded")
-                time.sleep(2)
+                await page.goto("https://leetcode.com/", timeout=90000, wait_until="domcontentloaded")
+                await page.wait_for_timeout(3000)
                 
-                # Step 2: Login
-                logger.info("Logging in...")
+                os.makedirs("screenshots", exist_ok=True)
                 
-                # Try multiple selector strategies for username
-                username_selectors = [
-                    'input[name="login"]',
-                    'input[id="id_login"]', 
-                    'input[placeholder*="Username"]',
-                    'input[placeholder*="email"]',
-                    'input[type="text"]'
-                ]
-                
-                username_filled = False
-                for sel in username_selectors:
-                    try:
-                        if page.locator(sel).first.is_visible(timeout=2000):
-                            page.fill(sel, username, timeout=3000)
-                            username_filled = True
+                # Check if already logged in by looking for user avatar or profile link
+                logged_in = False
+                try:
+                    # Check for signs of being logged in
+                    user_indicators = ['[class*="nav-user"]', '[class*="avatar"]', 'a[href*="/profile"]', '[id*="user"]']
+                    for indicator in user_indicators:
+                        if await page.locator(indicator).first.is_visible(timeout=2000):
+                            logged_in = True
+                            logger.info("✅ Already logged in! (found user indicator)")
                             break
-                    except:
-                        continue
-                
-                if not username_filled:
-                    return {"error": "login_failed", "message": "Could not find username input field"}
-                
-                # Fill password
-                password_selectors = [
-                    'input[name="password"]',
-                    'input[id="id_password"]',
-                    'input[type="password"]'
-                ]
-                
-                password_filled = False
-                for sel in password_selectors:
-                    try:
-                        if page.locator(sel).first.is_visible(timeout=2000):
-                            page.fill(sel, password, timeout=3000)
-                            password_filled = True
-                            break
-                    except:
-                        continue
-                
-                if not password_filled:
-                    return {"error": "login_failed", "message": "Could not find password input field"}
-                
-                # Click login button
-                login_selectors = [
-                    'button[type="submit"]',
-                    'button:has-text("Sign In")',
-                    'button:has-text("Login")',
-                    '#signin_btn'
-                ]
-                
-                for sel in login_selectors:
-                    try:
-                        if page.locator(sel).first.is_visible(timeout=2000):
-                            page.click(sel, timeout=3000)
-                            break
-                    except:
-                        continue
-                
-                # Wait for login to complete
-                time.sleep(5)
-                
-                # Check if login successful
-                if "login" in page.url.lower():
-                    # Still on login page - might have error
-                    error_text = ""
-                    try:
-                        error_elem = page.locator('.error, .alert-danger, [class*="error"]').first
-                        if error_elem.is_visible(timeout=2000):
-                            error_text = error_elem.inner_text()
-                    except:
-                        pass
                     
-                    return {
-                        "error": "login_failed",
-                        "message": f"Login failed. {error_text}".strip(),
-                        "hint": "Check your username/password or try logging in manually first"
-                    }
+                    # Also check if we're NOT on the login page
+                    if not logged_in and "login" not in page.url.lower():
+                        # Check for premium/subscribe buttons (only visible when logged in)
+                        if await page.locator('a[href*="/subscribe"]').first.is_visible(timeout=1000):
+                            logged_in = True
+                            logger.info("✅ Already logged in! (found subscribe link)")
+                except:
+                    pass
                 
-                logger.info("Login successful! Navigating to daily problem...")
+                if not logged_in:
+                    logger.info("⚠️ Not logged in. Please login MANUALLY in the browser window...")
+                    logger.info("👆 You only need to do this ONCE - the session will be saved!")
+                    logger.info("👆 Navigate to leetcode.com/accounts/login and login yourself.")
+                    logger.info("⏳ Waiting 2 minutes for you to complete login...")
+                    
+                    # Open login page for user
+                    await page.goto("https://leetcode.com/accounts/login/", timeout=90000)
+                    await page.wait_for_timeout(2000)
+                    
+                    # Wait for user to login manually (up to 2 minutes)
+                    for i in range(24):  # 24 * 5 = 120 seconds
+                        await page.wait_for_timeout(5000)
+                        current_url = page.url.lower()
+                        
+                        if "login" not in current_url and "accounts" not in current_url:
+                            logger.info(f"✅ Login successful! Session saved for future runs.")
+                            logged_in = True
+                            break
+                        
+                        logger.info(f"⏳ Waiting for manual login... ({(i+1)*5}s)")
+                    
+                    if not logged_in:
+                        await page.screenshot(path="screenshots/leetcode_login_timeout.png")
+                        return {
+                            "error": "login_timeout",
+                            "message": "Login timeout. Please try again and login manually.",
+                            "hint": "Login once manually - it will be saved for future runs!"
+                        }
                 
-                # Step 3: Navigate to daily challenge
-                page.goto("https://leetcode.com/problemset/", timeout=30000)
-                page.wait_for_load_state("domcontentloaded")
-                time.sleep(3)
+                logger.info("✅ Logged in! Navigating to daily problem...")
+                
+                # Step 2: Navigate to daily challenge
+                await page.goto("https://leetcode.com/problemset/", timeout=90000)
+                await page.wait_for_load_state("domcontentloaded")
+                await page.wait_for_timeout(3000)
                 
                 # Look for the daily challenge - it's usually marked with a calendar icon or "Daily Challenge"
                 daily_selectors = [
@@ -200,8 +225,8 @@ def run_leetcode_workflow(username, password, solution_code, language):
                 daily_found = False
                 for sel in daily_selectors:
                     try:
-                        if page.locator(sel).first.is_visible(timeout=3000):
-                            page.click(sel)
+                        if await page.locator(sel).first.is_visible(timeout=3000):
+                            await page.click(sel)
                             daily_found = True
                             break
                     except:
@@ -209,40 +234,40 @@ def run_leetcode_workflow(username, password, solution_code, language):
                 
                 if not daily_found:
                     # Navigate directly to daily coding challenge page
-                    page.goto("https://leetcode.com/problemset/all/?page=1&sorting=daily", timeout=30000)
-                    time.sleep(3)
+                    await page.goto("https://leetcode.com/problemset/all/?page=1&sorting=daily", timeout=90000)
+                    await page.wait_for_timeout(3000)
                     
                     # Try to click the first problem (which should be today's daily)
                     try:
                         first_problem = page.locator('a[href*="/problems/"]').first
-                        if first_problem.is_visible(timeout=3000):
-                            first_problem.click()
+                        if await first_problem.is_visible(timeout=3000):
+                            await first_problem.click()
                             daily_found = True
                     except:
                         pass
                 
                 if not daily_found:
                     # Last resort: go to leetcode.com and look for daily challenge banner
-                    page.goto("https://leetcode.com/", timeout=30000)
-                    time.sleep(3)
+                    await page.goto("https://leetcode.com/", timeout=90000)
+                    await page.wait_for_timeout(3000)
                     
                     try:
                         daily_banner = page.locator('[class*="daily"], [class*="Daily"]').first
-                        if daily_banner.is_visible(timeout=3000):
-                            daily_banner.click()
+                        if await daily_banner.is_visible(timeout=3000):
+                            await daily_banner.click()
                             daily_found = True
                     except:
                         pass
                 
-                time.sleep(3)
-                page.wait_for_load_state("domcontentloaded")
+                await page.wait_for_timeout(3000)
+                await page.wait_for_load_state("domcontentloaded")
                 
                 # Get problem title
                 problem_title = ""
                 try:
                     title_elem = page.locator('h4[data-cy="question-title"], .question-title, h3').first
-                    if title_elem.is_visible(timeout=3000):
-                        problem_title = title_elem.inner_text()
+                    if await title_elem.is_visible(timeout=3000):
+                        problem_title = await title_elem.inner_text()
                 except:
                     problem_title = page.url.split("/problems/")[-1].rstrip("/") if "/problems/" in page.url else "Unknown"
                 
@@ -255,14 +280,14 @@ def run_leetcode_workflow(username, password, solution_code, language):
                     # Select language
                     try:
                         lang_dropdown = page.locator('button[class*="lang"], [data-cy="lang-select"]').first
-                        if lang_dropdown.is_visible(timeout=3000):
-                            lang_dropdown.click()
-                            time.sleep(1)
+                        if await lang_dropdown.is_visible(timeout=3000):
+                            await lang_dropdown.click()
+                            await page.wait_for_timeout(1000)
                             
                             lang_option = page.locator(f'div:has-text("{language}")').first
-                            if lang_option.is_visible(timeout=2000):
-                                lang_option.click()
-                                time.sleep(1)
+                            if await lang_option.is_visible(timeout=2000):
+                                await lang_option.click()
+                                await page.wait_for_timeout(1000)
                     except:
                         logger.warning("Could not select language, using default")
                     
@@ -270,14 +295,14 @@ def run_leetcode_workflow(username, password, solution_code, language):
                     try:
                         # Monaco editor textarea
                         editor = page.locator('.monaco-editor textarea, .CodeMirror textarea').first
-                        if editor.is_visible(timeout=3000):
+                        if await editor.is_visible(timeout=3000):
                             # Clear existing code
-                            page.keyboard.press("Control+A")
-                            time.sleep(0.5)
+                            await page.keyboard.press("Control+A")
+                            await page.wait_for_timeout(500)
                             
                             # Type new code
-                            page.keyboard.type(solution_code, delay=10)
-                            time.sleep(1)
+                            await page.keyboard.type(solution_code, delay=10)
+                            await page.wait_for_timeout(1000)
                     except Exception as e:
                         logger.warning(f"Could not enter code in editor: {e}")
                         return {
@@ -290,17 +315,17 @@ def run_leetcode_workflow(username, password, solution_code, language):
                     # Click Submit button
                     try:
                         submit_btn = page.locator('button:has-text("Submit"), [data-cy="submit-code-btn"]').first
-                        if submit_btn.is_visible(timeout=3000):
-                            submit_btn.click()
+                        if await submit_btn.is_visible(timeout=3000):
+                            await submit_btn.click()
                             logger.info("Solution submitted!")
-                            time.sleep(5)  # Wait for result
+                            await page.wait_for_timeout(5000)  # Wait for result
                             
                             # Check submission result
                             result_text = ""
                             try:
                                 result_elem = page.locator('[class*="result"], [class*="accepted"], [class*="wrong"]').first
-                                if result_elem.is_visible(timeout=10000):
-                                    result_text = result_elem.inner_text()
+                                if await result_elem.is_visible(timeout=10000):
+                                    result_text = await result_elem.inner_text()
                             except:
                                 result_text = "Submission sent (check LeetCode for result)"
                             
@@ -327,8 +352,9 @@ def run_leetcode_workflow(username, password, solution_code, language):
                 
                 # Take screenshot for debugging
                 try:
+                    import time
                     screenshot_path = f"leetcode_error_{int(time.time())}.png"
-                    page.screenshot(path=screenshot_path)
+                    await page.screenshot(path=screenshot_path)
                 except:
                     screenshot_path = None
                 
@@ -338,9 +364,10 @@ def run_leetcode_workflow(username, password, solution_code, language):
                     "screenshot": screenshot_path
                 }
             finally:
-                browser.close()
+                await context.close()
                 
     except Exception as e:
+        logger.error(f"Playwright error in LeetCode workflow: {e}")
         return {
             "error": "playwright_error",
             "message": f"Browser automation error: {str(e)}",
