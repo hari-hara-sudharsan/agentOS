@@ -44,6 +44,9 @@ def create_pending_approval(user_context, tool, params):
         action = f"Login to {site} via browser automation"
     elif tool == "browser_download_file":
         action = f"Download file from website"
+    elif tool == "complete_leetcode_daily":
+        language = params.get("language", "python3")
+        action = f"Submit solution to LeetCode daily challenge ({language})"
     else:
         action = f"Execute {tool}"
 
@@ -62,7 +65,7 @@ def create_pending_approval(user_context, tool, params):
             binding_message=binding_message,
             approved=False,
             created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(minutes=30)
+            expires_at=datetime.utcnow() + timedelta(hours=24)  # Extended to 24 hours
         )
         db.add(approval)
         db.commit()
@@ -223,7 +226,8 @@ TOOL_SERVICE_MAP = {
     "send_slack_message": "slack",
     "upload_to_drive": "drive",
     "send_gmail": "gmail",
-    "create_image": "pic_tools"
+    "create_image": "pic_tools",
+    "complete_leetcode_daily": "leetcode"
 }
 
 
