@@ -77,17 +77,17 @@ We've made running the project incredibly easy.
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                      AGENTOS PLATFORM                                          │
-│                         Secure Sovereign AI with Auth0 Token Vault                            │
+│                         Secure Sovereign AI with Auth0 Token Vault                             │
 └────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                    PRESENTATION LAYER                                        │
 ├──────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                              │
-│  ┌──────────────────────┐          ┌──────────────────────┐         ┌────────────────────┐  │
-│  │   Web Browser        │          │   Mobile Devices     │         │   API Clients      │  │
-│  │   (Chrome/Firefox)   │          │   (Future Support)   │         │   (3rd Party)      │  │
-│  └──────────┬───────────┘          └──────────┬───────────┘         └─────────┬──────────┘  │
+│  ┌──────────────────────┐          ┌──────────────────────┐         ┌────────────────────┐   │
+│  │   Web Browser        │          │   Mobile Devices     │         │   API Clients      │   │
+│  │   (Chrome/Firefox)   │          │   (Future Support)   │         │   (3rd Party)      │   │
+│  └──────────┬───────────┘          └──────────┬───────────┘         └─────────┬──────────┘   │
 │             │                                  │                               │             │
 │             └──────────────────────────────────┼───────────────────────────────┘             │
 │                                                │                                             │
@@ -102,18 +102,18 @@ We've made running the project incredibly easy.
 │                              ┌─────────────────────────────┐                                 │
 │                              │      Auth0 Platform         │                                 │
 │                              │  ┌───────────────────────┐  │                                 │
-│                              │  │  Universal Login      │  │◄────── OpenID Connect          │
+│                              │  │  Universal Login      │  │◄────── OpenID Connect           │
 │                              │  │  (OIDC/OAuth 2.0)     │  │                                 │
 │                              │  └───────────┬───────────┘  │                                 │
 │                              │              │              │                                 │
 │                              │  ┌───────────▼───────────┐  │                                 │
-│                              │  │   Token Vault         │  │◄────── Federated Token         │
-│                              │  │   (NO RAW TOKENS!)    │  │        Exchange Grant          │
+│                              │  │   Token Vault         │  │◄────── Federated Token          │
+│                              │  │   (NO RAW TOKENS!)    │  │        Exchange Grant           │
 │                              │  └───────────┬───────────┘  │                                 │
 │                              │              │              │                                 │
 │                              │  ┌───────────▼───────────┐  │                                 │
-│                              │  │  Step-Up Auth / CIBA  │  │◄────── MFA for High-Stakes     │
-│                              │  │  (Async Approval)     │  │        Actions                 │
+│                              │  │  Step-Up Auth / CIBA  │  │◄────── MFA for High-Stakes      │
+│                              │  │  (Async Approval)     │  │        Actions                  │
 │                              │  └───────────────────────┘  │                                 │
 │                              └──────────────┬──────────────┘                                 │
 │                                             │                                                │
@@ -121,50 +121,50 @@ We've made running the project incredibly easy.
 └─────────────────────────────────────────────┼────────────────────────────────────────────────┘
                                               │
                                               ▼
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                    FRONTEND LAYER (Port 3000)                                │
-├──────────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────────────────┐     │
-│  │                          Next.js 16 (React 19 + TypeScript 5)                      │     │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌─────────────────────┐   │     │
-│  │  │   Dashboard  │  │ Integrations │  │   Approvals  │  │   Activity Logs     │   │     │
-│  │  │   Page (/)   │  │   Manager    │  │   UI (CIBA)  │  │   & Analytics       │   │     │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘  └─────────────────────┘   │     │
-│  │                                                                                    │     │
-│  │  ┌──────────────────────────────────────────────────────────────────────────────┐ │     │
-│  │  │  UI Components Layer                                                         │ │     │
-│  │  │  - Tailwind CSS 4 (Styling)                                                  │ │     │
-│  │  │  - ReactFlow 11 (Workflow Visualization)                                     │ │     │
-│  │  │  - @auth0/auth0-react (Authentication Provider)                              │ │     │
-│  │  │  - Server-Sent Events (SSE) Client (Real-time Approval Notifications)        │ │     │
-│  │  └──────────────────────────────────────────────────────────────────────────────┘ │     │
-│  └────────────────────────────────────────────────────────────────────────────────────┘     │
-│                                             │                                                │
-│                                             │ HTTP REST + WebSockets/SSE                     │
-└─────────────────────────────────────────────┼────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│                                    FRONTEND LAYER (Port 3000)                             │
+├───────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                           │
+│  ┌───────────────────────────────────────────────────────────────────────────────────┐    │
+│  │                          Next.js 16 (React 19 + TypeScript 5)                     │    │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌─────────────────────┐    │    │
+│  │  │   Dashboard  │  │ Integrations │  │   Approvals  │  │   Activity Logs     │    │    │
+│  │  │   Page (/)   │  │   Manager    │  │   UI (CIBA)  │  │   & Analytics       │    │    │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘  └─────────────────────┘    │    │
+│  │                                                                                   │    │
+│  │  ┌──────────────────────────────────────────────────────────────────────────────┐ │    │
+│  │  │  UI Components Layer                                                         │ │    │
+│  │  │  - Tailwind CSS 4 (Styling)                                                  │ │    │
+│  │  │  - ReactFlow 11 (Workflow Visualization)                                     │ │    │
+│  │  │  - @auth0/auth0-react (Authentication Provider)                              │ │    │
+│  │  │  - Server-Sent Events (SSE) Client (Real-time Approval Notifications)        │ │    │
+│  │  └──────────────────────────────────────────────────────────────────────────────┘ │    │
+│  └───────────────────────────────────────────────────────────────────────────────────┘    │
+│                                             │                                             │
+│                                             │ HTTP REST + WebSockets/SSE                  │
+└─────────────────────────────────────────────┼─────────────────────────────────────────────┘
                                               │
                                               ▼
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                   BACKEND LAYER (Port 8000)                                  │
-├──────────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────────────────┐     │
-│  │                          FastAPI (Python 3.11 + Uvicorn ASGI)                      │     │
-│  │  ┌────────────────────────────────────────────────────────────────────────────┐   │     │
-│  │  │                         API ROUTING LAYER                                  │   │     │
-│  │  │                                                                            │   │     │
-│  │  │  /api/agent/*         - Agent planning & execution endpoints              │   │     │
-│  │  │  /api/integrations/*  - OAuth integration management                      │   │     │
-│  │  │  /api/approvals/*     - CIBA approval workflows                           │   │     │
-│  │  │  /api/activity/*      - Execution logging & analytics                     │   │     │
-│  │  │  /metrics             - Prometheus metrics endpoint                       │   │     │
-│  │  └────────────────────────────────────────────────────────────────────────────┘   │     │
-│  └────────────────────────────────────────────────────────────────────────────────────┘     │
-│                                             │                                                │
-│           ┌─────────────────────────────────┼─────────────────────────────────┐             │
-│           │                                 │                                 │             │
-│           ▼                                 ▼                                 ▼             │
+┌────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   BACKEND LAYER (Port 8000)                                │
+├────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                            │
+│  ┌────────────────────────────────────────────────────────────────────────────────────┐    │
+│  │                          FastAPI (Python 3.11 + Uvicorn ASGI)                      │    │
+│  │  ┌────────────────────────────────────────────────────────────────────────────┐    │    │
+│  │  │                         API ROUTING LAYER                                  │    │    │
+│  │  │                                                                            │    │    │
+│  │  │  /api/agent/*         - Agent planning & execution endpoints               │    │    │
+│  │  │  /api/integrations/*  - OAuth integration management                       │    │    │
+│  │  │  /api/approvals/*     - CIBA approval workflows                            │    │    │
+│  │  │  /api/activity/*      - Execution logging & analytics                      │    │    │
+│  │  │  /metrics             - Prometheus metrics endpoint                        │    │    │
+│  │  └────────────────────────────────────────────────────────────────────────────┘    │    │
+│  └────────────────────────────────────────────────────────────────────────────────────┘    │
+│                                             │                                              │
+│           ┌─────────────────────────────────┼─────────────────────────────────┐            │
+│           │                                 │                                 │            │
+│           ▼                                 ▼                                 ▼            │
 │  ┌────────────────────┐        ┌────────────────────┐          ┌────────────────────┐      │
 │  │  MIDDLEWARE LAYER  │        │  SECURITY LAYER    │          │   OBSERVABILITY    │      │
 │  ├────────────────────┤        ├────────────────────┤          ├────────────────────┤      │
@@ -174,62 +174,62 @@ We've made running the project incredibly easy.
 │  │ • CORS Handler     │        │ • Retry Logic      │          │ • Error Tracking   │      │
 │  │ • Error Handler    │        │   (Tenacity)       │          │ • Request Tracing  │      │
 │  └────────────────────┘        └────────────────────┘          └────────────────────┘      │
-│                                             │                                                │
-└─────────────────────────────────────────────┼────────────────────────────────────────────────┘
+│                                             │                                              │
+└─────────────────────────────────────────────┼──────────────────────────────────────────────┘
                                               │
                                               ▼
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 AGENT ORCHESTRATION LAYER                                    │
-├──────────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                              │
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 AGENT ORCHESTRATION LAYER                                   │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                             │
 │  ┌────────────────────────────────────────────────────────────────────────────────────┐     │
 │  │                    LangChain + LangGraph Agent Framework                           │     │
-│  │  ┌─────────────┐      ┌──────────────┐      ┌──────────────┐    ┌──────────────┐ │     │
-│  │  │   Planner   │─────▶│   Executor   │─────▶│   Validator  │───▶│   Reporter   │ │     │
-│  │  │   Agent     │      │   Agent      │      │   Agent      │    │   Agent      │ │     │
-│  │  │             │      │              │      │              │    │              │ │     │
-│  │  │ (ChatGPT)   │      │ (Tool Calls) │      │ (Checks)     │    │ (Summary)    │ │     │
-│  │  └─────────────┘      └──────────────┘      └──────────────┘    └──────────────┘ │     │
+│  │  ┌─────────────┐      ┌──────────────┐      ┌──────────────┐    ┌──────────────┐   │     │
+│  │  │   Planner   │─────▶│   Executor   │─────▶│   Validator  │───▶│   Reporter │   │     │
+│  │  │   Agent     │      │   Agent      │      │   Agent      │    │   Agent      │   │     │
+│  │  │             │      │              │      │              │    │              │   │     │
+│  │  │ (ChatGPT)   │      │ (Tool Calls) │      │ (Checks)     │    │ (Summary)    │   │     │
+│  │  └─────────────┘      └──────────────┘      └──────────────┘    └──────────────┘   │     │
 │  │                                                                                    │     │
-│  │  Flow: User Request → Plan Tasks → Execute Tools → Validate → Generate Summary   │     │
+│  │  Flow: User Request → Plan Tasks → Execute Tools → Validate → Generate Summary     │     │
 │  └────────────────────────────────────────────────────────────────────────────────────┘     │
-│                                             │                                                │
-│                                             │                                                │
-│                                             ▼                                                │
+│                                             │                                               │
+│                                             │                                               │
+│                                             ▼                                               │
 │  ┌────────────────────────────────────────────────────────────────────────────────────┐     │
 │  │                              TOOL EXECUTION ENGINE                                 │     │
-│  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐  ┌─────────────────┐ │     │
-│  │  │ Google APIs    │  │  Slack/Discord │  │  GitHub/GitLab │  │  Browser Auto   │ │     │
-│  │  │ (Gmail, Drive) │  │  Integration   │  │  Integration   │  │  (Playwright)   │ │     │
-│  │  └────────────────┘  └────────────────┘  └────────────────┘  └─────────────────┘ │     │
-│  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐  ┌─────────────────┐ │     │
-│  │  │ File System    │  │  HTTP Requests │  │  Database Ops  │  │  Custom Tools   │ │     │
-│  │  │ Operations     │  │  (API Calls)   │  │  (CRUD)        │  │  (Extensible)   │ │     │
-│  │  └────────────────┘  └────────────────┘  └────────────────┘  └─────────────────┘ │     │
+│  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐  ┌─────────────────┐   │     │
+│  │  │ Google APIs    │  │  Slack/Discord │  │  GitHub/GitLab │  │  Browser Auto   │   │     │
+│  │  │ (Gmail, Drive) │  │  Integration   │  │  Integration   │  │  (Playwright)   │   │     │
+│  │  └────────────────┘  └────────────────┘  └────────────────┘  └─────────────────┘   │     │
+│  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐  ┌─────────────────┐   │     │
+│  │  │ File System    │  │  HTTP Requests │  │  Database Ops  │  │  Custom Tools   │   │     │
+│  │  │ Operations     │  │  (API Calls)   │  │  (CRUD)        │  │  (Extensible)   │   │     │
+│  │  └────────────────┘  └────────────────┘  └────────────────┘  └─────────────────┘   │     │
 │  │                                                                                    │     │
-│  │  Each Tool: Check if HIGH-STAKES → Trigger Approval Flow or Execute Directly      │     │
+│  │  Each Tool: Check if HIGH-STAKES → Trigger Approval Flow or Execute Directly       │     │
 │  └────────────────────────────────────────────────────────────────────────────────────┘     │
-│                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+│                                                                                             │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
                                               │
                                               ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                    DATA PERSISTENCE LAYER                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                              │
-│  ┌────────────────────┐      ┌────────────────────┐      ┌──────────────────────┐          │
-│  │  Primary Database  │      │   Cache Layer      │      │  Execution State     │          │
-│  ├────────────────────┤      ├────────────────────┤      ├──────────────────────┤          │
-│  │ • SQLite (Dev)     │      │ • Redis 7          │      │ • Approval Records   │          │
-│  │ • PostgreSQL (Prod)│      │   - Rate limiting  │      │ • Activity Logs      │          │
-│  │                    │      │   - Sessions       │      │ • Execution History  │          │
-│  │ Tables:            │      │   - Task queues    │      │ • Integration Refs   │          │
-│  │ - users            │      │   - SSE channels   │      │   (token_reference)  │          │
-│  │ - integrations     │      └────────────────────┘      └──────────────────────┘          │
-│  │ - approvals        │                                                                     │
+│  ┌────────────────────┐      ┌────────────────────┐      ┌──────────────────────┐            │
+│  │  Primary Database  │      │   Cache Layer      │      │  Execution State     │            │
+│  ├────────────────────┤      ├────────────────────┤      ├──────────────────────┤            │
+│  │ • SQLite (Dev)     │      │ • Redis 7          │      │ • Approval Records   │            │
+│  │ • PostgreSQL (Prod)│      │   - Rate limiting  │      │ • Activity Logs      │            │
+│  │                    │      │   - Sessions       │      │ • Execution History  │            │
+│  │ Tables:            │      │   - Task queues    │      │ • Integration Refs   │            │
+│  │ - users            │      │   - SSE channels   │      │   (token_reference)  │            │
+│  │ - integrations     │      └────────────────────┘      └──────────────────────┘            │
+│  │ - approvals        │                                                                      │
 │  │ - activity_logs    │      ⚠️  CRITICAL: NO raw tokens stored locally!                    │
-│  │ - executions       │          Only connection references like "google:12345678"          │
-│  └────────────────────┘                                                                     │
+│  │ - executions       │          Only connection references like "google:12345678"           │
+│  └────────────────────┘                                                                      │
 │                                                                                              │
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
                                               │
@@ -238,26 +238,26 @@ We've made running the project incredibly easy.
 │                                  EXTERNAL INTEGRATIONS                                       │
 ├──────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                              │
-│  ┌────────────────────┐   ┌────────────────────┐   ┌────────────────────┐                  │
-│  │  OpenAI API        │   │  Ollama (OpenClaw) │   │  Google Workspace  │                  │
-│  │  (ChatGPT GPT-4)   │   │  - Llama 3         │   │  - Gmail           │                  │
-│  │                    │   │  - Mistral         │   │  - Google Drive    │                  │
-│  │  Primary LLM for   │   │  - CodeLlama       │   │  - Google Calendar │                  │
-│  │  agent planning    │   │                    │   │                    │                  │
-│  └────────────────────┘   │  Local LLM Sandbox │   └────────────────────┘                  │
-│                           │  (GPU/CPU modes)   │                                            │
-│  ┌────────────────────┐   └────────────────────┘   ┌────────────────────┐                  │
-│  │  Slack API         │                            │  Discord API       │                  │
-│  │  - Messages        │   ┌────────────────────┐   │  - Webhooks        │                  │
-│  │  - Channels        │   │  GitHub API        │   │  - Bot Commands    │                  │
-│  │  - Webhooks        │   │  - Repos           │   └────────────────────┘                  │
-│  └────────────────────┘   │  - Issues          │                                            │
-│                           │  - Pull Requests   │   ┌────────────────────┐                  │
-│  ┌────────────────────┐   └────────────────────┘   │  Custom APIs       │                  │
-│  │  LeetCode API      │                            │  (Extensible)      │                  │
-│  │  - Problems        │                            └────────────────────┘                  │
-│  │  - Submissions     │                                                                     │
-│  └────────────────────┘                                                                     │
+│  ┌────────────────────┐   ┌────────────────────┐   ┌────────────────────┐                    │
+│  │  OpenAI API        │   │  Ollama (OpenClaw) │   │  Google Workspace  │                    │
+│  │  (ChatGPT GPT-4)   │   │  - Llama 3         │   │  - Gmail           │                    │
+│  │                    │   │  - Mistral         │   │  - Google Drive    │                    │
+│  │  Primary LLM for   │   │  - CodeLlama       │   │  - Google Calendar │                    │
+│  │  agent planning    │   │                    │   │                    │                    │
+│  └────────────────────┘   │  Local LLM Sandbox │   └────────────────────┘                    │
+│                           │  (GPU/CPU modes)   │                                             │
+│  ┌────────────────────┐   └────────────────────┘   ┌────────────────────┐                    │
+│  │  Slack API         │                            │  Discord API       │                    │
+│  │  - Messages        │   ┌────────────────────┐   │  - Webhooks        │                    │
+│  │  - Channels        │   │  GitHub API        │   │  - Bot Commands    │                    │
+│  │  - Webhooks        │   │  - Repos           │   └────────────────────┘                    │
+│  └────────────────────┘   │  - Issues          │                                             │
+│                           │  - Pull Requests   │   ┌────────────────────┐                    │
+│  ┌────────────────────┐   └────────────────────┘   │  Custom APIs       │                    │
+│  │  LeetCode API      │                            │  (Extensible)      │                    │
+│  │  - Problems        │                            └────────────────────┘                    │
+│  │  - Submissions     │                                                                      │
+│  └────────────────────┘                                                                      │
 │                                                                                              │
 │  🔒 All external API access goes through Auth0 Token Vault - NO direct token storage!       │
 │                                                                                              │
@@ -268,60 +268,60 @@ We've made running the project incredibly easy.
 │                              MONITORING & OBSERVABILITY LAYER                                │
 ├──────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────────────────┐     │
-│  │  Prometheus (Port 9090)                      Grafana (Port 3001)                   │     │
-│  │  ┌──────────────────────┐                   ┌──────────────────────┐              │     │
-│  │  │ Metrics Collection:  │                   │ Visualization:       │              │     │
-│  │  │ • HTTP requests      │───────────────────│ • System dashboards  │              │     │
-│  │  │ • Response times     │     Queries       │ • Custom panels      │              │     │
-│  │  │ • Error rates        │                   │ • Alert management   │              │     │
-│  │  │ • Agent executions   │                   │ • Real-time graphs   │              │     │
-│  │  │ • Tool invocations   │                   └──────────────────────┘              │     │
-│  │  │ • Token vault calls  │                                                          │     │
-│  │  │ • Cache hit ratios   │                   Credentials:                           │     │
-│  │  └──────────────────────┘                   User: admin                            │     │
-│  │                                              Pass: agentos123                       │     │
-│  │  Storage: 15-day retention                                                          │     │
-│  └────────────────────────────────────────────────────────────────────────────────────┘     │
+│  ┌────────────────────────────────────────────────────────────────────────────────────┐      │
+│  │  Prometheus (Port 9090)                      Grafana (Port 3001)                   │      │
+│  │  ┌──────────────────────┐                   ┌──────────────────────┐               │      │
+│  │  │ Metrics Collection:  │                   │ Visualization:       │               │      │
+│  │  │ • HTTP requests      │───────────────────│ • System dashboards  │               │      │
+│  │  │ • Response times     │     Queries       │ • Custom panels      │               │      │
+│  │  │ • Error rates        │                   │ • Alert management   │               │      │
+│  │  │ • Agent executions   │                   │ • Real-time graphs   │               │      │
+│  │  │ • Tool invocations   │                   └──────────────────────┘               │      │
+│  │  │ • Token vault calls  │                                                          │      │
+│  │  │ • Cache hit ratios   │                   Credentials:                           │      │
+│  │  └──────────────────────┘                   User: admin                            │      │
+│  │                                              Pass: agentos123                      │      │
+│  │  Storage: 15-day retention                                                         │      │
+│  └────────────────────────────────────────────────────────────────────────────────────┘      │
 │                                                                                              │
-│  Alert Rules: High error rate, slow response times, token vault failures, disk space        │
+│  Alert Rules: High error rate, slow response times, token vault failures, disk space         │
 │                                                                                              │
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
                                               │
                                               ▼
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│                            INFRASTRUCTURE & DEPLOYMENT LAYER                                 │
-├──────────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────────────────┐     │
-│  │                              LOCAL DEVELOPMENT                                     │     │
+┌────────────────────────────────────────────────────────────────────────────────────────────┐
+│                            INFRASTRUCTURE & DEPLOYMENT LAYER                               │
+├────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                            │
+│  ┌───────────────────────────────────────────────────────────────────────────────────┐     │
+│  │                              LOCAL DEVELOPMENT                                    │     │
 │  │  ┌──────────────────────────────────────────────────────────────────────────┐     │     │
 │  │  │ Docker Compose (docker-compose.yml)                                      │     │     │
-│  │  │                                                                           │     │     │
-│  │  │  Services:                                                                │     │     │
-│  │  │  • backend (FastAPI) - Port 8000                                          │     │     │
-│  │  │  • frontend (Next.js) - Port 3000                                         │     │     │
-│  │  │  • redis (Redis 7) - Port 6379                                            │     │     │
-│  │  │  • prometheus (Prom v2.50) - Port 9090                                    │     │     │
-│  │  │  • grafana (Grafana 10.3) - Port 3001                                     │     │     │
+│  │  │                                                                          │     │     │
+│  │  │  Services:                                                               │     │     │
+│  │  │  • backend (FastAPI) - Port 8000                                         │     │     │
+│  │  │  • frontend (Next.js) - Port 3000                                        │     │     │
+│  │  │  • redis (Redis 7) - Port 6379                                           │     │     │
+│  │  │  • prometheus (Prom v2.50) - Port 9090                                   │     │     │
+│  │  │  • grafana (Grafana 10.3) - Port 3001                                    │     │     │
 │  │  │  • openclaw (Ollama GPU) - Port 11434 [Profile: gpu]                     │     │     │
 │  │  │  • openclaw-cpu (Ollama CPU) - Port 11434 [Profile: cpu]                 │     │     │
-│  │  │                                                                           │     │     │
+│  │  │                                                                          │     │     │
 │  │  │  Network: agentos-network (172.28.0.0/16)                                │     │     │
 │  │  │  Volumes: redis_data, prometheus_data, grafana_data, ollama_data         │     │     │
-│  │  │                                                                           │     │     │
+│  │  │                                                                          │     │     │
 │  │  │  Start: docker-compose up -d                                             │     │     │
 │  │  │  With GPU: docker-compose --profile gpu up -d                            │     │     │
 │  │  └──────────────────────────────────────────────────────────────────────────┘     │     │
-│  └────────────────────────────────────────────────────────────────────────────────────┘     │
-│                                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────────────────┐     │
-│  │                           PRODUCTION DEPLOYMENT                                    │     │
+│  └───────────────────────────────────────────────────────────────────────────────────┘     │
+│                                                                                            │
+│  ┌───────────────────────────────────────────────────────────────────────────────────┐     │
+│  │                           PRODUCTION DEPLOYMENT                                   │     │
 │  │  ┌──────────────────────────────────────────────────────────────────────────┐     │     │
 │  │  │ Kubernetes Cluster (k8s/)                                                │     │     │
-│  │  │                                                                           │     │     │
+│  │  │                                                                          │     │     │
 │  │  │  Namespace: agentos                                                      │     │     │
-│  │  │                                                                           │     │     │
+│  │  │                                                                          │     │     │
 │  │  │  Deployments:                                                            │     │     │
 │  │  │  • backend-deployment (3-20 replicas with HPA)                           │     │     │
 │  │  │    - CPU: 500m-2000m, Memory: 1Gi-4Gi                                    │     │     │
@@ -330,38 +330,38 @@ We've made running the project incredibly easy.
 │  │  │  • redis-deployment (1 replica with persistence)                         │     │     │
 │  │  │  • prometheus-deployment (monitoring stack)                              │     │     │
 │  │  │  • grafana-deployment (visualization)                                    │     │     │
-│  │  │                                                                           │     │     │
-│  │  │  Services:                                                                │     │     │
+│  │  │                                                                          │     │     │
+│  │  │  Services:                                                               │     │     │
 │  │  │  • backend-service (ClusterIP + NodePort 30800)                          │     │     │
 │  │  │  • frontend-service (ClusterIP + NodePort 30300)                         │     │     │
 │  │  │  • redis-service (ClusterIP)                                             │     │     │
 │  │  │  • prometheus-service (ClusterIP + NodePort 30900)                       │     │     │
 │  │  │  • grafana-service (ClusterIP + NodePort 30301)                          │     │     │
-│  │  │                                                                           │     │     │
-│  │  │  Ingress:                                                                 │     │     │
+│  │  │                                                                          │     │     │
+│  │  │  Ingress:                                                                │     │     │
 │  │  │  • NGINX Ingress Controller                                              │     │     │
 │  │  │  • Path routing: /api → backend, / → frontend                            │     │     │
 │  │  │  • TLS/SSL termination                                                   │     │     │
-│  │  │                                                                           │     │     │
+│  │  │                                                                          │     │     │
 │  │  │  ConfigMaps & Secrets:                                                   │     │     │
 │  │  │  • Environment variables (Auth0, OpenAI keys)                            │     │     │
 │  │  │  • Prometheus config, Grafana dashboards                                 │     │     │
-│  │  │                                                                           │     │     │
+│  │  │                                                                          │     │     │
 │  │  │  Deploy: kubectl apply -f k8s/                                           │     │     │
 │  │  └──────────────────────────────────────────────────────────────────────────┘     │     │
-│  │                                                                                    │     │
+│  │                                                                                   │     │
 │  │  ┌──────────────────────────────────────────────────────────────────────────┐     │     │
 │  │  │ Helm Chart (helm/agentos/)                                               │     │     │
-│  │  │                                                                           │     │     │
+│  │  │                                                                          │     │     │
 │  │  │  Templates: Service, Deployment, HPA, Ingress                            │     │     │
 │  │  │  Values: Configurable replicas, resources, scaling policies              │     │     │
-│  │  │                                                                           │     │     │
+│  │  │                                                                          │     │     │
 │  │  │  Install: helm install agentos ./helm/agentos                            │     │     │
 │  │  │  Upgrade: helm upgrade agentos ./helm/agentos                            │     │     │
 │  │  └──────────────────────────────────────────────────────────────────────────┘     │     │
-│  └────────────────────────────────────────────────────────────────────────────────────┘     │
-│                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+│  └───────────────────────────────────────────────────────────────────────────────────┘     │
+│                                                                                            │
+└────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -479,7 +479,7 @@ STEP 2: AGENT REQUEST - LOW-STAKES ACTION (Read-Only)
 │  Auth0 Token Vault API                           │
 │  POST /oauth/token                               │
 │  {                                               │
-│    grant_type: "urn:auth0:params:oauth:         │
+│    grant_type: "urn:auth0:params:oauth:          │
 │      grant-type:token-exchange:                  │
 │      federated-connection-access-token",         │
 │    connection: "google-oauth2",                  │
@@ -572,8 +572,8 @@ STEP 3: HIGH-STAKES ACTION (Requires Step-Up Auth)
 │    args: {...},                          │
 │    status: "pending",                    │
 │    created_at: NOW(),                    │
-│    binding_message: "AgentOS wants to   │
-│      send a Slack message to #general.  │
+│    binding_message: "AgentOS wants to    │
+│      send a Slack message to #general.   │
 │      Authorize to proceed."              │
 │  }                                       │
 └──────┬───────────────────────────────────┘
@@ -594,7 +594,7 @@ STEP 3: HIGH-STAKES ACTION (Requires Step-Up Auth)
        ▼
 ┌──────────────────────────────────────────┐
 │  Frontend Approvals UI                   │
-│  🟣 [SECURITY HALT]                      │
+│  🟣 [SECURITY HALT]                     │
 │  "AgentOS wants to send a Slack message  │
 │   to #general. Authorize to proceed."    │
 │                                          │
@@ -678,41 +678,41 @@ PRINCIPLE: Raw tokens NEVER touch AgentOS infrastructure
 │     ↓                                                                       │
 │  2. Backend generates Auth0 authorization URL                               │
 │     ↓                                                                       │
-│  3. Redirect user to Auth0 Universal Login with connection=google-oauth2   │
+│  3. Redirect user to Auth0 Universal Login with connection=google-oauth2    │
 │     ↓                                                                       │
-│  4. User authenticates with Google (OAuth 2.0 consent screen)              │
+│  4. User authenticates with Google (OAuth 2.0 consent screen)               │
 │     ↓                                                                       │
 │  5. Google returns authorization code to Auth0                              │
 │     ↓                                                                       │
-│  6. Auth0 exchanges code for tokens AND stores in Token Vault              │
+│  6. Auth0 exchanges code for tokens AND stores in Token Vault               │
 │     (access_token, refresh_token stored securely in Auth0)                  │
 │     ↓                                                                       │
 │  7. Auth0 creates federated identity link:                                  │
-│     user_id: auth0|123 → google-oauth2|987654321                           │
+│     user_id: auth0|123 → google-oauth2|987654321                            │
 │     ↓                                                                       │
 │  8. Auth0 redirects to AgentOS callback:                                    │
 │     /api/integrations/callback?code=<auth_code>                             │
 │     ↓                                                                       │
 │  9. Backend validates callback, stores ONLY connection reference:           │
 │                                                                             │
-│     ┌──────────────────────────────────────────────────────────┐           │
-│     │  AgentOS Database (Local)                                │           │
-│     │  ┌────────────────────────────────────────────────────┐  │           │
-│     │  │ Table: integrations                                │  │           │
-│     │  │ ┌──────────────────────────────────────────────┐   │  │           │
-│     │  │ │ user_id: auth0|123                           │   │  │           │
-│     │  │ │ provider: google                             │   │  │           │
-│     │  │ │ token_reference: "google:987654321"          │   │  │           │
-│     │  │ │ granted_scopes: ["gmail.readonly", ...]      │   │  │           │
-│     │  │ │ consent_timestamp: 2026-04-05T10:00:00Z      │   │  │           │
-│     │  │ │ status: active                               │   │  │           │
-│     │  │ └──────────────────────────────────────────────┘   │  │           │
-│     │  └────────────────────────────────────────────────────┘  │           │
-│     └──────────────────────────────────────────────────────────┘           │
+│     ┌──────────────────────────────────────────────────────────┐            │
+│     │  AgentOS Database (Local)                                │            │
+│     │  ┌────────────────────────────────────────────────────┐  │            │
+│     │  │ Table: integrations                                │  │            │
+│     │  │ ┌──────────────────────────────────────────────┐   │  │            │
+│     │  │ │ user_id: auth0|123                           │   │  │            │
+│     │  │ │ provider: google                             │   │  │            │ 
+│     │  │ │ token_reference: "google:987654321"          │   │  │            │
+│     │  │ │ granted_scopes: ["gmail.readonly", ...]      │   │  │            │
+│     │  │ │ consent_timestamp: 2026-04-05T10:00:00Z      │   │  │            │
+│     │  │ │ status: active                               │   │  │            │
+│     │  │ └──────────────────────────────────────────────┘   │  │            │
+│     │  └────────────────────────────────────────────────────┘  │            │
+│     └──────────────────────────────────────────────────────────┘            │ 
 │                                                                             │
-│     ⚠️  NO access_token field                                              │
-│     ⚠️  NO refresh_token field                                             │
-│     ⚠️  ONLY non-sensitive metadata                                        │
+│     ⚠️  NO access_token field                                               │
+│     ⚠️  NO refresh_token field                                              │
+│     ⚠️  ONLY non-sensitive metadata                                         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -731,7 +731,7 @@ PRINCIPLE: Raw tokens NEVER touch AgentOS infrastructure
 │                                                                             │
 │     POST https://{AUTH0_DOMAIN}/oauth/token                                 │
 │     {                                                                       │
-│       grant_type: "urn:auth0:params:oauth:grant-type:                      │
+│       grant_type: "urn:auth0:params:oauth:grant-type:                       │
 │                    token-exchange:federated-connection-access-token",       │
 │       connection: "google-oauth2",                                          │
 │       subject_token: <user_id_token>,                                       │
@@ -749,7 +749,7 @@ PRINCIPLE: Raw tokens NEVER touch AgentOS infrastructure
 │     ↓                                                                       │
 │  4. Response (ephemeral, short-lived):                                      │
 │     {                                                                       │
-│       access_token: "ya29.a0AfH6SMB...",  ← NEVER stored in AgentOS        │
+│       access_token: "ya29.a0AfH6SMB...",  ← NEVER stored in AgentOS         │
 │       token_type: "Bearer",                                                 │
 │       expires_in: 3600                                                      │
 │     }                                                                       │
@@ -768,7 +768,7 @@ PRINCIPLE: Raw tokens NEVER touch AgentOS infrastructure
 │  REVOCATION FLOW (User Disconnects Integration)                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  User Action: Click "Disconnect" in /integrations                            │
+│  User Action: Click "Disconnect" in /integrations                           │
 │                                                                             │
 │  1. Frontend → DELETE /api/integrations/disconnect/google                   │
 │     ↓                                                                       │
@@ -777,7 +777,7 @@ PRINCIPLE: Raw tokens NEVER touch AgentOS infrastructure
 │     ↓                                                                       │
 │  3. Backend calls Auth0 Management API to delete federated identity:        │
 │                                                                             │
-│     DELETE https://{AUTH0_DOMAIN}/api/v2/users/{user_id}/identities/       │
+│     DELETE https://{AUTH0_DOMAIN}/api/v2/users/{user_id}/identities/        │
 │            google-oauth2/987654321                                          │
 │     ↓                                                                       │
 │  4. Auth0 Token Vault:                                                      │
@@ -813,7 +813,7 @@ PRINCIPLE: Raw tokens NEVER touch AgentOS infrastructure
 │      # Token exchange request                                               │
 │                                                                             │
 │  Failure scenarios:                                                         │
-│  • Network timeout → Retry (2s, 4s, 8s delays)                             │
+│  • Network timeout → Retry (2s, 4s, 8s delays)                              │
 │  • 429 Rate Limit → Exponential backoff                                     │
 │  • 401 Unauthorized → Trigger re-authentication flow                        │
 │  • 403 Forbidden → Check scope permissions, log error                       │
