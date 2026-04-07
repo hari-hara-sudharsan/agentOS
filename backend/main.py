@@ -53,7 +53,7 @@ app.state.limiter = limiter
 
 origins = [
     "http://localhost:3000",
-    "https://agent-oqerfuebg-first-intern.vercel.app"
+    "https://agent-bap3k3x86-first-intern.vercel.app"
 ]
 
 # Add Prometheus metrics middleware
