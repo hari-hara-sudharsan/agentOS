@@ -52,7 +52,8 @@ set_system_info(
 app.state.limiter = limiter
 
 origins = [
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "https://agent-poivpq6w3-first-intern.vercel.app"
 ]
 
 # Add Prometheus metrics middleware
