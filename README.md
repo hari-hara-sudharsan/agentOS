@@ -2,7 +2,6 @@
 
 **Keeping humans in control while empowering sovereign AI agents with safe, auditable access to the real world.**
 
-![AgentOS Banner](https://via.placeholder.com/1200x400/4F46E5/FFFFFF?text=AgentOS%20-%20Secure%20Sovereign%20AI)
 
 ## ✨ What is AgentOS?
 
