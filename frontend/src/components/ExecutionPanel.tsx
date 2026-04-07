@@ -107,6 +107,257 @@ function ResultBlock({ tool, result, onResume }: { tool: string, result: any, on
     )
   }
 
+  // Gmail Messages - Rich display with clickable links
+  if (result.type === "gmail_messages" && result.messages) {
+    return (
+      <div className="ep-result ep-result--gmail">
+        <span className="ep-result-label">// EMAIL RESULTS</span>
+        {result.summary && (
+          <p className="ep-result-summary">{result.summary}</p>
+        )}
+        <div className="ep-result-items">
+          {result.messages.map((email: any, idx: number) => (
+            <a 
+              key={email.id || idx}
+              href={email.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ep-result-item ep-result-item--email"
+            >
+              <div className="ep-item-header">
+                <span className="ep-item-icon">✉</span>
+                <span className="ep-item-from">{email.from?.split('<')[0]?.trim() || email.from}</span>
+                {email.date && <span className="ep-item-date">{new Date(email.date).toLocaleDateString()}</span>}
+              </div>
+              <div className="ep-item-subject">{email.subject}</div>
+              {email.snippet && <div className="ep-item-snippet">{email.snippet}...</div>}
+              <span className="ep-item-link-hint">Click to open in Gmail →</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Google Drive files - Rich display with clickable links
+  if (result.type === "drive_files" && result.files) {
+    const getFileIcon = (mimeType: string) => {
+      if (!mimeType) return "◉"
+      if (mimeType.includes("folder")) return "◫"
+      if (mimeType.includes("spreadsheet")) return "▦"
+      if (mimeType.includes("document")) return "☰"
+      if (mimeType.includes("presentation")) return "▣"
+      if (mimeType.includes("image")) return "▨"
+      if (mimeType.includes("pdf")) return "▤"
+      return "◉"
+    }
+    
+    return (
+      <div className="ep-result ep-result--drive">
+        <span className="ep-result-label">// DRIVE FILES</span>
+        {result.summary && (
+          <p className="ep-result-summary">{result.summary}</p>
+        )}
+        <div className="ep-result-items">
+          {result.files.map((file: any, idx: number) => (
+            <a 
+              key={file.id || idx}
+              href={file.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ep-result-item ep-result-item--file"
+            >
+              <span className="ep-item-icon">{getFileIcon(file.type)}</span>
+              <div className="ep-item-details">
+                <span className="ep-item-name">{file.name}</span>
+                {file.modified && (
+                  <span className="ep-item-date">Modified: {new Date(file.modified).toLocaleDateString()}</span>
+                )}
+              </div>
+              <span className="ep-item-link-hint">Open in Drive →</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // GitHub repos - Rich display with clickable links
+  if (result.repos && Array.isArray(result.repos)) {
+    return (
+      <div className="ep-result ep-result--github">
+        <span className="ep-result-label">// GITHUB REPOSITORIES</span>
+        <p className="ep-result-summary">Found {result.repos.length} repositories</p>
+        <div className="ep-result-items">
+          {result.repos.map((repo: any, idx: number) => (
+            <a 
+              key={idx}
+              href={repo.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ep-result-item ep-result-item--repo"
+            >
+              <span className="ep-item-icon">⬡</span>
+              <span className="ep-item-name">{repo.name}</span>
+              <span className="ep-item-link-hint">View on GitHub →</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Drive file uploaded
+  if (result.file_id && result.link && result.file_name) {
+    return (
+      <div className="ep-result ep-result--success">
+        <span className="ep-result-label">// FILE UPLOADED</span>
+        <p className="ep-result-summary">{result.message}</p>
+        <a 
+          href={result.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ep-result-item ep-result-item--file"
+        >
+          <span className="ep-item-icon">◉</span>
+          <span className="ep-item-name">{result.file_name}</span>
+          <span className="ep-item-link-hint">View in Drive →</span>
+        </a>
+      </div>
+    )
+  }
+
+  // Browser action with link (open site, login, etc.)
+  if (result.url && result.link && result.status === "success") {
+    return (
+      <div className="ep-result ep-result--success">
+        <span className="ep-result-label">// BROWSER ACTION</span>
+        <p className="ep-result-summary">{result.message}</p>
+        <a 
+          href={result.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ep-result-item ep-result-item--link"
+        >
+          <span className="ep-item-icon">◎</span>
+          <span className="ep-item-name">{result.title || result.url}</span>
+          <span className="ep-item-link-hint">Open in browser →</span>
+        </a>
+      </div>
+    )
+  }
+
+  // GitHub issue created
+  if (result.issue_number && result.url) {
+    return (
+      <div className="ep-result ep-result--success">
+        <span className="ep-result-label">// ISSUE CREATED</span>
+        <p className="ep-result-summary">{result.message}</p>
+        <a 
+          href={result.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ep-result-item ep-result-item--link"
+        >
+          <span className="ep-item-icon">◉</span>
+          <span className="ep-item-name">Issue #{result.issue_number}</span>
+          <span className="ep-item-link-hint">View on GitHub →</span>
+        </a>
+      </div>
+    )
+  }
+
+  // Linear issue created
+  if (result.identifier && result.url) {
+    return (
+      <div className="ep-result ep-result--success">
+        <span className="ep-result-label">// LINEAR ISSUE CREATED</span>
+        <p className="ep-result-summary">{result.message}</p>
+        <a 
+          href={result.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ep-result-item ep-result-item--link"
+        >
+          <span className="ep-item-icon">▣</span>
+          <span className="ep-item-name">{result.identifier}</span>
+          <span className="ep-item-link-hint">View in Linear →</span>
+        </a>
+      </div>
+    )
+  }
+
+  // Calendar event created
+  if (result.event_id && result.link) {
+    return (
+      <div className="ep-result ep-result--success">
+        <span className="ep-result-label">// EVENT CREATED</span>
+        <p className="ep-result-summary">{result.message}</p>
+        <a 
+          href={result.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ep-result-item ep-result-item--calendar"
+        >
+          <span className="ep-item-icon">◈</span>
+          <span className="ep-item-name">View Calendar Event</span>
+          <span className="ep-item-link-hint">Open in Google Calendar →</span>
+        </a>
+        {result.start && (
+          <p className="ep-result-meta">
+            Scheduled: {new Date(result.start).toLocaleString()}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  // LeetCode problem / submission
+  if (result.problem_title && result.url) {
+    const statusLabel = result.status === "submitted" ? "SOLUTION SUBMITTED" : "PROBLEM FOUND"
+    return (
+      <div className="ep-result ep-result--success">
+        <span className="ep-result-label">// {statusLabel}</span>
+        <p className="ep-result-summary">{result.message}</p>
+        {result.result && (
+          <p className="ep-result-meta" style={{ color: result.result.toLowerCase().includes('accepted') ? 'rgba(74,222,128,0.9)' : 'rgba(251,191,36,0.9)' }}>
+            Result: {result.result}
+          </p>
+        )}
+        <a 
+          href={result.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ep-result-item ep-result-item--link"
+        >
+          <span className="ep-item-icon">▣</span>
+          <span className="ep-item-name">{result.problem_title}</span>
+          <span className="ep-item-link-hint">View on LeetCode →</span>
+        </a>
+      </div>
+    )
+  }
+
+  // Email sent success
+  if (result.message_id && result.thread_id) {
+    return (
+      <div className="ep-result ep-result--success">
+        <span className="ep-result-label">// EMAIL SENT</span>
+        <p className="ep-result-summary">{result.message}</p>
+        <a 
+          href={`https://mail.google.com/mail/u/0/#sent/${result.message_id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ep-result-item ep-result-item--email"
+        >
+          <span className="ep-item-icon">✉</span>
+          <span className="ep-item-name">View Sent Email</span>
+          <span className="ep-item-link-hint">Open in Gmail →</span>
+        </a>
+      </div>
+    )
+  }
+
   if (result.summary) {
     return (
       <div className="ep-result ep-result--summary">
@@ -134,6 +385,16 @@ function ResultBlock({ tool, result, onResume }: { tool: string, result: any, on
         <p className="ep-result-body">
           {result.messages.length} records retrieved from endpoint.
         </p>
+      </div>
+    )
+  }
+
+  // Success status messages
+  if (result.status === "success" && result.message) {
+    return (
+      <div className="ep-result ep-result--success">
+        <span className="ep-result-label">// SUCCESS</span>
+        <p className="ep-result-body" style={{ color: "rgba(74,222,128,0.9)" }}>{result.message}</p>
       </div>
     )
   }
@@ -168,29 +429,32 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
 
         /* ── Goal header ── */
         .ep-goal {
-          padding: 16px 0 14px;
-          border-bottom: 1px solid rgba(239,68,68,0.12);
-          margin-bottom: 16px;
+          padding: 18px 0 16px;
+          border-bottom: 1px solid rgba(139,92,246,0.15);
+          margin-bottom: 18px;
         }
 
         .ep-goal-eyebrow {
           font-size: 8px; letter-spacing: 0.38em; text-transform: uppercase;
-          color: rgba(239,68,68,0.55);
-          margin-bottom: 6px;
+          color: rgba(6,182,212,0.7);
+          margin-bottom: 8px;
           display: flex; align-items: center; gap: 8px;
           font-weight: 600;
         }
         .ep-goal-eyebrow::before {
           content: '';
           display: inline-block;
-          width: 20px; height: 1px;
-          background: linear-gradient(90deg, rgba(239,68,68,0.7), transparent);
+          width: 24px; height: 2px;
+          background: linear-gradient(90deg, rgba(139,92,246,0.8), rgba(6,182,212,0.5), transparent);
         }
 
         .ep-goal-text {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 24px; letter-spacing: 0.06em;
-          color: rgba(240,245,250,0.95);
+          font-size: 26px; letter-spacing: 0.06em;
+          background: linear-gradient(135deg, rgba(240,245,250,0.95) 0%, rgba(167,139,250,0.9) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
           line-height: 1.1;
         }
 
@@ -198,53 +462,55 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
           color: rgba(148,163,184,0.45);
           font-size: 16px;
           letter-spacing: 0.14em;
+          background: none;
+          -webkit-text-fill-color: rgba(148,163,184,0.45);
         }
 
         /* ── Step counter row ── */
         .ep-counts {
           display: flex; gap: 0;
-          border: 1px solid rgba(239,68,68,0.15);
-          border-radius: 8px;
+          border: 1px solid rgba(139,92,246,0.2);
+          border-radius: 10px;
           overflow: hidden;
-          margin-bottom: 20px;
-          background: rgba(15,19,29,0.4);
+          margin-bottom: 22px;
+          background: rgba(15,19,29,0.5);
         }
 
         .ep-count-seg {
           flex: 1;
-          padding: 12px 0;
-          display: flex; flex-direction: column; align-items: center; gap: 4px;
-          border-right: 1px solid rgba(239,68,68,0.1);
-          transition: background 0.2s ease;
+          padding: 14px 0;
+          display: flex; flex-direction: column; align-items: center; gap: 5px;
+          border-right: 1px solid rgba(139,92,246,0.12);
+          transition: background 0.25s ease;
         }
         .ep-count-seg:hover {
-          background: rgba(239,68,68,0.05);
+          background: rgba(139,92,246,0.08);
         }
         .ep-count-seg:last-child { border-right: none; }
 
         .ep-count-label {
           font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase;
-          color: rgba(148,163,184,0.55);
+          color: rgba(148,163,184,0.6);
           font-weight: 600;
         }
         .ep-count-val {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 24px; letter-spacing: 0.04em;
+          font-size: 26px; letter-spacing: 0.04em;
           line-height: 1;
         }
-        .ep-count-val.wh { color: rgba(203,213,225,0.85); }
-        .ep-count-val.yw { color: #eab308; }
-        .ep-count-val.gr { color: #22c55e; }
-        .ep-count-val.rd { color: #ef4444; }
+        .ep-count-val.wh { color: rgba(203,213,225,0.9); }
+        .ep-count-val.yw { color: #fbbf24; }
+        .ep-count-val.gr { color: #4ade80; }
+        .ep-count-val.rd { color: #f87171; }
 
         /* ── Steps list ── */
         .ep-steps {
-          display: flex; flex-direction: column; gap: 10px;
+          display: flex; flex-direction: column; gap: 12px;
         }
 
         /* ── Step card ── */
         .ep-step {
-          border-radius: 8px;
+          border-radius: 10px;
           border: 1px solid;
           overflow: hidden;
           transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -286,7 +552,7 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
         .ep-step-tool {
           flex: 1;
           font-size: 13px; letter-spacing: 0.08em;
-          color: rgba(240,245,250,0.92);
+          color: rgba(240,245,250,0.95);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           font-weight: 500;
         }
@@ -294,7 +560,7 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
         /* Status badge */
         .ep-step-badge {
           font-size: 8px; letter-spacing: 0.24em; text-transform: uppercase;
-          padding: 3px 9px;
+          padding: 4px 10px;
           border-radius: 100px;
           border: 1px solid;
           flex-shrink: 0;
@@ -313,12 +579,12 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
         /* ── Progress bar (running only) ── */
         .ep-step-progress {
           height: 2px;
-          background: rgba(234,179,8,0.12);
+          background: rgba(251,191,36,0.15);
           overflow: hidden;
         }
         .ep-step-progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, transparent, #eab308, rgba(255,220,80,0.9), #eab308, transparent);
+          background: linear-gradient(90deg, transparent, #fbbf24, rgba(139,92,246,0.9), #06b6d4, transparent);
           background-size: 200% 100%;
           animation: progress-sweep 1.4s linear infinite;
         }
@@ -329,43 +595,188 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
 
         /* ── Result blocks ── */
         .ep-result {
-          padding: 12px 16px 14px;
-          display: flex; flex-direction: column; gap: 8px;
-          border-top: 1px solid rgba(239,68,68,0.08);
-          background: rgba(15,19,29,0.3);
+          padding: 14px 18px 16px;
+          display: flex; flex-direction: column; gap: 10px;
+          border-top: 1px solid rgba(139,92,246,0.1);
+          background: rgba(15,19,29,0.4);
         }
 
         .ep-result-label {
           font-size: 8px; letter-spacing: 0.32em; text-transform: uppercase;
-          color: rgba(239,68,68,0.65);
+          color: rgba(6,182,212,0.75);
           font-weight: 600;
         }
 
         .ep-result-body {
-          font-size: 12px; line-height: 1.6; letter-spacing: 0.02em;
-          color: rgba(203,213,225,0.85);
+          font-size: 12px; line-height: 1.65; letter-spacing: 0.02em;
+          color: rgba(203,213,225,0.88);
         }
         .ep-result-body--error { color: rgba(248,113,113,0.9); }
 
-        .ep-result--summary .ep-result-label { color: rgba(96,165,250,0.65); }
-        .ep-result--summary .ep-result-body  { color: rgba(147,197,253,0.9); }
-        .ep-result--error   .ep-result-label { color: rgba(248,113,113,0.7); }
+        .ep-result--summary .ep-result-label { color: rgba(139,92,246,0.75); }
+        .ep-result--summary .ep-result-body  { color: rgba(196,181,253,0.9); }
+        .ep-result--error   .ep-result-label { color: rgba(248,113,113,0.8); }
 
         .ep-result-scroll {
-          max-height: 140px;
+          max-height: 160px;
           overflow-y: auto;
         }
         .ep-result-scroll::-webkit-scrollbar { width: 4px; }
         .ep-result-scroll::-webkit-scrollbar-thumb {
-          background: rgba(239,68,68,0.25); border-radius: 3px;
+          background: linear-gradient(180deg, rgba(139,92,246,0.4), rgba(6,182,212,0.4));
+          border-radius: 4px;
         }
 
         .ep-result-pre {
           font-family: 'DM Mono', monospace;
-          font-size: 10px; line-height: 1.6;
-          color: rgba(180,172,150,0.6);
+          font-size: 10px; line-height: 1.65;
+          color: rgba(180,190,210,0.65);
           white-space: pre-wrap; word-break: break-all;
           margin: 0;
+        }
+
+        /* ── Rich Result Items ── */
+        .ep-result-summary {
+          font-size: 11px;
+          color: rgba(203,213,225,0.88);
+          margin-bottom: 12px;
+          line-height: 1.55;
+        }
+
+        .ep-result-items {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          max-height: 300px;
+          overflow-y: auto;
+        }
+
+        .ep-result-item {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          padding: 12px 14px;
+          border-radius: 8px;
+          border: 1px solid rgba(139,92,246,0.15);
+          background: rgba(15,19,29,0.55);
+          cursor: pointer;
+          transition: all 0.25s ease;
+          text-decoration: none;
+          color: inherit;
+        }
+
+        .ep-result-item:hover {
+          border-color: rgba(6,182,212,0.4);
+          background: rgba(6,182,212,0.08);
+          transform: translateX(6px);
+          box-shadow: 0 0 16px rgba(6,182,212,0.15);
+        }
+
+        .ep-item-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .ep-item-icon {
+          font-size: 14px;
+          background: linear-gradient(135deg, rgba(139,92,246,0.9), rgba(6,182,212,0.9));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          flex-shrink: 0;
+        }
+
+        .ep-item-from {
+          font-size: 11px;
+          font-weight: 500;
+          color: rgba(240,245,250,0.92);
+          flex: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .ep-item-date {
+          font-size: 9px;
+          color: rgba(148,163,184,0.65);
+          flex-shrink: 0;
+        }
+
+        .ep-item-subject {
+          font-size: 10px;
+          font-weight: 500;
+          color: rgba(203,213,225,0.92);
+          line-height: 1.45;
+        }
+
+        .ep-item-snippet {
+          font-size: 9px;
+          color: rgba(148,163,184,0.65);
+          line-height: 1.45;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .ep-item-name {
+          font-size: 11px;
+          color: rgba(240,245,250,0.92);
+          flex: 1;
+        }
+
+        .ep-item-link-hint {
+          font-size: 8px;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          color: rgba(6,182,212,0.6);
+          align-self: flex-end;
+          opacity: 0;
+          transition: opacity 0.25s ease;
+        }
+
+        .ep-result-item:hover .ep-item-link-hint {
+          opacity: 1;
+          color: rgba(6,182,212,0.9);
+        }
+
+        .ep-result-item--repo,
+        .ep-result-item--link,
+        .ep-result-item--calendar,
+        .ep-result-item--file {
+          flex-direction: row;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .ep-item-details {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          gap: 2px;
+        }
+
+        .ep-result-meta {
+          font-size: 9px;
+          color: rgba(148,163,184,0.6);
+          margin-top: 8px;
+        }
+
+        .ep-result--success .ep-result-label {
+          color: rgba(74,222,128,0.7);
+        }
+
+        .ep-result--gmail .ep-result-label {
+          color: rgba(96,165,250,0.7);
+        }
+
+        .ep-result--github .ep-result-label {
+          color: rgba(168,85,247,0.7);
+        }
+
+        .ep-result--drive .ep-result-label {
+          color: rgba(251,191,36,0.7);
         }
 
         /* ── Empty state ── */

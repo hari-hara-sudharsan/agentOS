@@ -139,14 +139,14 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
         <div className="flex flex-col gap-3 w-full">
             {/* Error display */}
             {error && (
-                <div className="px-4 py-3 bg-red-900/50 border border-red-500/50 rounded-lg text-red-300 text-sm">
+                <div className="px-4 py-3 bg-red-900/40 border border-red-500/40 rounded-lg text-red-300 text-sm">
                     <span className="font-medium">Error:</span> {error}
                 </div>
             )}
             
             <div className="flex gap-3 w-full">
                 <input
-                    className="flex-1 px-4 py-3 bg-slate-700 text-slate-100 placeholder-slate-400 rounded-lg border border-slate-600 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-30 transition-all disabled:opacity-50"
+                    className="flex-1 px-4 py-3 bg-slate-800/60 text-slate-100 placeholder-slate-400 rounded-lg border border-violet-500/30 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-opacity-25 transition-all disabled:opacity-50"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder={isLoading ? "Processing..." : "Ask AgentOS..."}
@@ -168,7 +168,7 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
                     <button
                         onClick={sendMessage}
                         disabled={!message.trim()}
-                        className="px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-3 bg-gradient-to-r from-violet-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-500/25"
                     >
                         Send
                     </button>
