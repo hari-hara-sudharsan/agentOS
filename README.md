@@ -1,31 +1,65 @@
 # AgentOS: Secure Sovereign AI with Auth0 Token Vault
 
-## 🏆 Submission Period Updates
+**Keeping humans in control while empowering sovereign AI agents with safe, auditable access to the real world.**
 
-- 2026-04-05: **NEW** Added Consent Guardian - AI-powered action analysis with OpenClaw for intelligent consent recommendations.
-- 2026-04-05: **NEW** Enhanced approval UI with risk level indicators, AI explanations, and minimal scope display.
-- 2026-04-05: **NEW** Grafana "Consent Guardian Decisions" dashboard for action → scope → decision observability.
-- 2026-03-26: Hardened token flow to strict Auth0 Token Vault no-raw-token storage.
-- 2026-03-26: Added official federated connection token exchange grant and step-up/CIBA support.
-- 2026-03-26: Added integration metadata (`consent_timestamp`, `granted_scopes`) and explicit revocation history.
-- 2026-03-26: Added operational dashboards (`/integrations`, `/approvals`) and interactive resume flows.
-- 2026-03-26: Introduced retry+exponential backoff for all Token Vault calls for reliability.
+![AgentOS Banner](https://via.placeholder.com/1200x400/4F46E5/FFFFFF?text=AgentOS%20-%20Secure%20Sovereign%20AI)
 
-## 📺 Live Demo Video (3 mins)
+## ✨ What is AgentOS?
 
-**[Insert Video Link Here]** _(Starting with a 10-second TL;DR of what problem this solves!)_
+AgentOS is a **zero-trust intermediary platform** that lets local sovereign AI models (such as OpenClaw running on Ollama) securely interact with external APIs and services — **without ever exposing raw tokens** to the agent or the application.
 
-## 🐾 Project Theme: OpenClaw Sandbox
+It serves as a secure gateway between your private LLM sandbox and the outside world, powered by **Auth0 Token Vault**, intelligent AI-driven consent, and human-in-the-loop authorization.
 
-AgentOS acts as an **intermediary agent** that keeps **OpenClaw** (or any local sovereign AI) in restricted, local sandbox mode. It securely bridges the gap between private LLMs and the outside world by acting as the sole gateway to external APIs, strictly managed by the **Auth0 Token Vault for AI Agents**.
+### The Problem It Solves
+Modern agent frameworks force a dangerous choice:  
+- Give the LLM raw tokens → **high security risk**  
+- Severely limit capabilities → **low usefulness**
 
-## 🔐 Security Model
+AgentOS eliminates this tradeoff with **secure, transparent, and user-controlled** access.
 
-- Strict Token Vault usage: No raw access or refresh tokens are written to local DB fields or logs.
-- DB stores only non-sensitive connection references (e.g., `google:12345678`) using `Integration.token_reference`.
-- Backend runtime obtains provider tokens through official Auth0 federated token exchange grant (`urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token`) via `/oauth/token`, with `connection` set to provider connection name; fallback secure identity lookup (`/api/v2/users/{id}`) is last resort only.
-- Raw token inputs from clients are rejected with clear `400` errors.
-- Revocation reliably deletes identity from Auth0 (`/api/v2/users/{id}/identities/{provider}/{user_id}`).
+## 🚀 Key Features
+
+- **Zero-Trust Token Vault** — No raw access tokens or refresh tokens are stored or logged
+- **Consent Guardian** *(NEW)* — Local AI (OpenClaw) analyzes actions and recommends minimal scopes, plain-English explanations, and risk levels
+- **Step-Up Authentication + Async CIBA Flows** — Real-time human approval for high-stakes actions via MFA
+- **Least-Privilege Enforcement** — Dynamic minimal OAuth scopes per action
+- **Full Audit Trail** — Consent timestamps, revocation history, and structured activity logging
+- **Observability Dashboards** — Grafana panels for Consent Guardian decisions, approvals, and system health
+- **Production-Ready** — Docker Compose + Kubernetes + Helm support
+
+## 🏆 What's New (April 2026)
+
+- **2026-04-05**: Introduced **Consent Guardian** with OpenClaw-powered action analysis
+- **2026-04-05**: Enhanced approval UI with risk indicators, AI explanations, and minimal scope display
+- **2026-04-05**: New Grafana dashboard: *"Consent Guardian Decisions"*
+- **2026-03-26**: Hardened token handling using strict Auth0 Token Vault (no raw tokens anywhere)
+- **2026-03-26**: Full support for federated token exchange, step-up auth, and CIBA
+
+## 🛡️ Security Model
+
+AgentOS follows strict **zero-trust** principles:
+
+- Raw tokens **never** touch the AgentOS database, logs, or filesystem
+- Only non-sensitive references (e.g., `google:12345678`) are stored locally
+- All provider tokens are fetched on-demand via **Auth0 Federated Token Exchange**
+- High-risk actions trigger **Step-Up MFA** and asynchronous approval
+- Complete revocation via Auth0 Management API
+- Exponential backoff + retries on all Token Vault calls
+
+## 🐾 Architecture Overview
+
+```mermaid
+flowchart LR
+    U[User] -->|Login| A(Auth0)
+    A -->|ID Token| TV[Auth0 Token Vault]
+    TV -->|Federated Exchange| AT[Agent Toolkit]
+    AT -->|Policy Enforcement| OC[OpenClaw<br>Local AI Sandbox]
+    OC -->|Tool Calls| E[External APIs]
+    subgraph Consent Guardian
+        CG[AI Action Analysis]
+    end
+    AT -->|Before Execution| CG
+    CG -->|Risk + Scopes + Explanation| SU[User Approval<br>(Step-Up / CIBA)]
 
 ## 🏗️ Architecture (Mermaid)
 
@@ -1072,3 +1106,14 @@ Early data shows that Consent Guardian reduces average granted scopes by 40%, wi
 Token Vault handles the *where* (secure storage) and *how* (federated exchange). Consent Guardian handles the *what* and *why*. Together, they create a complete consent layer that's both technically rigorous and humanly understandable. The agent gets minimal permissions, the vault protects the tokens, and the user stays in control with full transparency.
 
 AI agents are only as trustworthy as their permission boundaries. With Consent Guardian + Token Vault, we've built boundaries that users can actually understand—and that's the real innovation.
+
+### To run 
+
+
+Frontend Link :   https://agent-dlm5mgybv-first-intern.vercel.app/
+Backend Link :    https://agentos-backend-tjx6.onrender.com/
+
+Run Backend and then Frontend And Try it out.
+
+
+Thank you!
