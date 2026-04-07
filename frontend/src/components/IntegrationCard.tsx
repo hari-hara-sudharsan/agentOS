@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
 import { API_BASE_URL } from "../lib/api"
 
-export default function IntegrationCard({service}:any){
+export default function IntegrationCard({service}:?any){
   const { getAccessTokenSilently, loginWithPopup } = useAuth0()
   const [isPrompting, setIsPrompting] = useState(false)
   const [tokenInput, setTokenInput] = useState("")

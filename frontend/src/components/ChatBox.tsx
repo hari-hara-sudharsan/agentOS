@@ -176,13 +176,13 @@ export default function ChatBox() {
           border: 1px solid var(--border);
           border-radius: 14px;
           overflow: hidden;
-          background: rgba(16,20,30,0.95);
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
+          background: rgba(26,31,46,0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           box-shadow:
             0 0 0 1px rgba(255,255,255,0.05) inset,
             0 32px 80px rgba(0,0,0,0.6),
-            0 0 100px rgba(139,92,246,0.1);
+            0 0 80px rgba(239,68,68,0.08);
           position: relative;
           animation: shell-in 0.65s cubic-bezier(0.22,1,0.36,1) both;
         }
@@ -195,31 +195,31 @@ export default function ChatBox() {
         /* Prismatic top edge */
         .cb-shell::before {
           content: '';
-          position: absolute; top: 0; left: 0; right: 0; height: 2px;
+          position: absolute; top: 0; left: 0; right: 0; height: 1px;
           background: linear-gradient(90deg,
             transparent 0%,
-            rgba(139,92,246,0.2) 10%,
-            rgba(139,92,246,0.7) 30%,
-            rgba(6,182,212,0.9) 50%,
-            rgba(139,92,246,0.7) 70%,
-            rgba(139,92,246,0.2) 90%,
+            rgba(255,40,40,0.15) 10%,
+            rgba(255,80,80,0.55) 35%,
+            rgba(255,120,120,0.75) 50%,
+            rgba(255,80,80,0.55) 65%,
+            rgba(255,40,40,0.15) 90%,
             transparent 100%
           );
-          box-shadow: 0 0 24px rgba(139,92,246,0.4);
+          box-shadow: 0 0 20px rgba(255,40,40,0.4);
           z-index: 2;
         }
 
         /* ══ TITLE BAR ══ */
         .cb-titlebar {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 18px 26px;
-          background: rgba(10,12,20,0.85);
+          padding: 16px 24px;
+          background: rgba(15,19,29,0.8);
           border-bottom: 1px solid var(--border);
           position: relative; z-index: 1;
         }
 
         .cb-titlebar-left {
-          display: flex; align-items: center; gap: 16px;
+          display: flex; align-items: center; gap: 14px;
         }
 
         /* Traffic-light dots */
@@ -229,13 +229,13 @@ export default function ChatBox() {
         .cb-dot {
           width: 10px; height: 10px; border-radius: 50%;
         }
-        .cb-dot--red    { background: var(--red);  box-shadow: 0 0 6px rgba(248,113,113,0.7); }
-        .cb-dot--yellow { background: var(--yellow); opacity: 0.6; }
-        .cb-dot--green  { background: var(--green);  opacity: 0.5; }
+        .cb-dot--red    { background: var(--red);  box-shadow: 0 0 6px rgba(255,40,40,0.8); }
+        .cb-dot--yellow { background: var(--yellow); opacity: 0.55; }
+        .cb-dot--green  { background: var(--green);  opacity: 0.45; }
 
         .cb-titlebar-id {
           font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
-          color: rgba(139,92,246,0.8);
+          color: rgba(239,68,68,0.7);
           font-weight: 500;
         }
 
@@ -246,22 +246,22 @@ export default function ChatBox() {
         /* Live pulse badge */
         .cb-live {
           display: flex; align-items: center; gap: 7px;
-          padding: 5px 12px;
+          padding: 4px 11px;
           border-radius: 100px;
-          border: 1px solid rgba(6,182,212,0.25);
-          background: rgba(6,182,212,0.08);
+          border: 1px solid rgba(255,40,40,0.22);
+          background: rgba(255,40,40,0.06);
           font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-          color: rgba(6,182,212,0.75);
+          color: rgba(255,40,40,0.65);
         }
         .cb-live-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: var(--accent);
-          box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(6,182,212,0.5);
+          width: 5px; height: 5px; border-radius: 50%;
+          background: var(--red);
+          box-shadow: 0 0 6px var(--red), 0 0 12px rgba(255,40,40,0.5);
           animation: live-pulse 2s ease-in-out infinite;
         }
         @keyframes live-pulse {
-          0%,100% { opacity:1; box-shadow: 0 0 8px var(--accent), 0 0 18px rgba(6,182,212,0.5); }
-          50%      { opacity:0.6; box-shadow: 0 0 4px var(--accent); }
+          0%,100% { opacity:1; box-shadow: 0 0 6px var(--red), 0 0 14px rgba(255,40,40,0.5); }
+          50%      { opacity:0.5; box-shadow: 0 0 3px var(--red); }
         }
 
         .cb-seq {
@@ -272,7 +272,7 @@ export default function ChatBox() {
         .cb-statusbar {
           display: flex; align-items: stretch;
           border-bottom: 1px solid var(--border);
-          background: rgba(10,12,20,0.55);
+          background: rgba(15,19,29,0.5);
           gap: 0;
         }
 
@@ -280,29 +280,29 @@ export default function ChatBox() {
           flex: 1;
           display: flex; flex-direction: column; align-items: center;
           justify-content: center;
-          padding: 16px 14px;
+          padding: 14px 12px;
           border-right: 1px solid var(--border);
           gap: 6px;
-          transition: background 0.25s ease;
+          transition: background 0.2s ease;
         }
         .cb-stat:last-child { border-right: none; }
-        .cb-stat:hover { background: rgba(139,92,246,0.06); }
+        .cb-stat:hover { background: rgba(239,68,68,0.05); }
 
         .cb-stat-label {
           font-size: 8px; letter-spacing: 0.32em; text-transform: uppercase;
-          color: rgba(148,163,184,0.68);
+          color: rgba(148,163,184,0.65);
           font-weight: 500;
         }
         .cb-stat-val {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 26px; letter-spacing: 0.06em;
-          color: rgba(240,245,250,0.94); line-height: 1;
+          font-size: 24px; letter-spacing: 0.06em;
+          color: rgba(240,245,250,0.92); line-height: 1;
           transition: color 0.2s ease;
           font-weight: bold;
         }
-        .cb-stat-val.red    { color: #f87171; }
-        .cb-stat-val.green  { color: #4ade80; }
-        .cb-stat-val.yellow { color: #fbbf24; }
+        .cb-stat-val.red    { color: #ef4444; }
+        .cb-stat-val.green  { color: #22c55e; }
+        .cb-stat-val.yellow { color: #eab308; }
 
         /* ══ GRAPH SECTION ══ */
         .cb-section {
@@ -312,88 +312,88 @@ export default function ChatBox() {
 
         .cb-section-header {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 14px 26px;
-          border-bottom: 1px solid rgba(139,92,246,0.1);
-          background: rgba(10,12,20,0.5);
+          padding: 12px 24px;
+          border-bottom: 1px solid rgba(239,68,68,0.08);
+          background: rgba(15,19,29,0.4);
         }
         .cb-section-title {
           display: flex; align-items: center; gap: 10px;
           font-size: 9px; letter-spacing: 0.32em; text-transform: uppercase;
-          color: rgba(6,182,212,0.8);
+          color: rgba(239,68,68,0.65);
           font-weight: 600;
         }
         .cb-section-title::before {
           content: '';
-          width: 5px; height: 5px; border-radius: 50%;
-          background: var(--primary);
+          width: 4px; height: 4px; border-radius: 50%;
+          background: var(--red);
         }
         .cb-section-badge {
           font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
-          padding: 4px 12px; border-radius: 100px;
+          padding: 4px 10px; border-radius: 100px;
           border: 1px solid var(--border);
-          color: rgba(148,163,184,0.68);
+          color: rgba(148,163,184,0.65);
           background: rgba(15,19,29,0.5);
         }
         .cb-section-badge.hot {
-          border-color: rgba(139,92,246,0.35);
-          color: rgba(139,92,246,0.85);
-          background: rgba(139,92,246,0.1);
+          border-color: rgba(239,68,68,0.3);
+          color: rgba(239,68,68,0.75);
+          background: rgba(239,68,68,0.08);
           font-weight: 600;
         }
 
         .cb-section-body {
-          padding: 26px;
+          padding: 24px;
         }
 
         /* ══ DIVIDER SLASH ══ */
         .cb-slash-divider {
-          height: 2px;
+          height: 1px;
           background: linear-gradient(90deg,
             transparent 0%,
-            rgba(139,92,246,0.3) 15%,
-            rgba(139,92,246,0.7) 40%,
-            rgba(6,182,212,0.8) 50%,
-            rgba(139,92,246,0.7) 60%,
-            rgba(139,92,246,0.3) 85%,
+            var(--red-dim) 15%,
+            rgba(255,40,40,0.55) 45%,
+            rgba(255,80,80,0.7) 50%,
+            rgba(255,40,40,0.55) 55%,
+            var(--red-dim) 85%,
             transparent 100%
           );
-          box-shadow: 0 0 16px rgba(139,92,246,0.3);
+          box-shadow: 0 0 12px rgba(255,40,40,0.25);
         }
 
         /* ══ INPUT SECTION ══ */
         .cb-input-section {
-          background: rgba(10,12,20,0.65);
+          background: rgba(15,19,29,0.6);
           position: relative;
         }
 
         .cb-input-section::before {
           content: '';
           position: absolute; top: 0; left: 3%; right: 3%; height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(6,182,212,0.2), transparent);
+          background: linear-gradient(90deg, transparent, rgba(239,68,68,0.15), transparent);
         }
 
         .cb-input-inner {
-          padding: 22px 26px 26px;
+          padding: 20px 24px 24px;
         }
 
         /* ══ FOOTER ══ */
         .cb-footer {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 14px 26px;
-          border-top: 1px solid rgba(139,92,246,0.12);
-          background: rgba(10,12,20,0.75);
+          padding: 12px 24px;
+          border-top: 1px solid rgba(239,68,68,0.1);
+          background: rgba(15,19,29,0.7);
         }
 
         .cb-footer-left {
-          display: flex; align-items: center; gap: 10px;
+          display: flex; align-items: center; gap: 8px;
           font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase;
-          color: rgba(148,163,184,0.6);
+          color: rgba(148,163,184,0.55);
           font-weight: 500;
         }
         .cb-footer-left::before {
           content: '';
-          width: 16px; height: 2px;
-          background: linear-gradient(90deg, rgba(139,92,246,0.6), transparent);
+          width: 12px; height: 1px;
+          background: linear-gradient(90deg, rgba(239,68,68,0.5), transparent);
         }
 
         .cb-footer-right {
