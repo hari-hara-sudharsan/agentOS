@@ -4,9 +4,14 @@ const nextConfig: NextConfig = {
   // Optimize builds and caching
   reactStrictMode: true,
   
-  // Optimize images
+  // Optimize images (using remotePatterns instead of deprecated domains)
   images: {
-    domains: ['hariharasudharsanj.us.auth0.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'hariharasudharsanj.us.auth0.com',
+      },
+    ],
   },
 
   // Environment variable validation
@@ -17,17 +22,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_AUTH0_AUDIENCE: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
   },
 
-  // Cache optimization
-  onDemandEntries: {
-    maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 2,
-  },
-
   // Disable x-powered-by header for security
   poweredByHeader: false,
-
-  // Production optimization
-  swcMinify: true,
 };
 
 export default nextConfig;
