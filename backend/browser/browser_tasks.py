@@ -12,7 +12,13 @@ def execute_browser_task(page, tool, params):
 
             page.goto(url)
 
-            return {"status": "site_opened"}
+            return {
+                "status": "success",
+                "message": f"✅ Opened website successfully",
+                "url": url,
+                "link": url,
+                "title": page.title()
+            }
 
         elif tool == "browser_login":
 
@@ -23,7 +29,12 @@ def execute_browser_task(page, tool, params):
 
             page.wait_for_timeout(3000)
 
-            return {"status": "login_success"}
+            return {
+                "status": "success",
+                "message": "✅ Login completed successfully",
+                "url": page.url,
+                "link": page.url
+            }
 
         elif tool == "browser_download_file":
 
@@ -36,8 +47,10 @@ def execute_browser_task(page, tool, params):
             file_path = save_download(download)
 
             return {
-                "status": "download_complete",
-                "file_path": file_path
+                "status": "success",
+                "message": f"✅ File downloaded successfully",
+                "file_path": file_path,
+                "file_name": download.suggested_filename
             }
 
     except Exception as e:

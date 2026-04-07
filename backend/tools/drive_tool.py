@@ -123,12 +123,14 @@ def upload_to_drive(user_context, params):
         }
 
     result = response.json()
+    file_id = result.get("id")
     return {
         "status": "success",
         "message": f"✅ File '{file_name}' uploaded successfully!",
-        "file_id": result.get("id"),
+        "file_id": file_id,
         "file_name": result.get("name"),
-        "mime_type": result.get("mimeType")
+        "mime_type": result.get("mimeType"),
+        "link": f"https://drive.google.com/file/d/{file_id}/view"
     }
 
 
@@ -232,19 +234,37 @@ def list_drive_files(user_context, params):
     files = response.json().get("files", [])
     
     if not files:
-        return {"message": "No files found in Drive.", "files": []}
+        return {"summary": "No files found in Drive.", "type": "drive_files", "files": []}
     
     file_list = []
     for f in files:
+        file_id = f.get("id")
+        mime_type = f.get("mimeType", "")
+        
+        # Generate appropriate link based on file type
+        if "folder" in mime_type:
+            link = f"https://drive.google.com/drive/folders/{file_id}"
+        elif "spreadsheet" in mime_type:
+            link = f"https://docs.google.com/spreadsheets/d/{file_id}"
+        elif "document" in mime_type:
+            link = f"https://docs.google.com/document/d/{file_id}"
+        elif "presentation" in mime_type:
+            link = f"https://docs.google.com/presentation/d/{file_id}"
+        else:
+            link = f"https://drive.google.com/file/d/{file_id}/view"
+        
         file_list.append({
-            "id": f.get("id"),
+            "id": file_id,
             "name": f.get("name"),
-            "type": f.get("mimeType"),
-            "modified": f.get("modifiedTime")
+            "type": mime_type,
+            "modified": f.get("modifiedTime"),
+            "link": link
         })
     
     return {
-        "message": f"Found {len(files)} files in Drive",
+        "type": "drive_files",
+        "summary": f"Found {len(files)} files in Drive",
+        "count": len(files),
         "files": file_list
     }
 

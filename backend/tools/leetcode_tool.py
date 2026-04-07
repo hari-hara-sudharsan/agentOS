@@ -334,7 +334,8 @@ async def _run_leetcode_workflow_async(username, password, solution_code, langua
                                 "problem_title": problem_title,
                                 "result": result_text,
                                 "url": page.url,
-                                "message": f"Successfully submitted solution for '{problem_title}'"
+                                "link": page.url,
+                                "message": f"✅ Successfully submitted solution for '{problem_title}'"
                             }
                     except:
                         pass
@@ -344,7 +345,8 @@ async def _run_leetcode_workflow_async(username, password, solution_code, langua
                     "status": "navigated",
                     "problem_title": problem_title,
                     "url": page.url,
-                    "message": f"Navigated to today's problem: {problem_title}. No solution code provided - please provide solution_code to auto-submit."
+                    "link": page.url,
+                    "message": f"📖 Navigated to today's problem: {problem_title}. Provide solution_code to auto-submit."
                 }
                 
             except Exception as e:

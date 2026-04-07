@@ -208,20 +208,34 @@ def read_gmail(user_context, params):
             headers_list = msg_data.get("payload", {}).get("headers", [])
             subject = "No Subject"
             sender = "Unknown Sender"
+            date_str = ""
+            snippet = msg_data.get("snippet", "")[:100]  # Get email snippet for summary
             
             for h in headers_list:
                 if h.get("name") == "Subject":
                     subject = h.get("value")
                 elif h.get("name") == "From":
                     sender = h.get("value")
-                    
+                elif h.get("name") == "Date":
+                    date_str = h.get("value", "")
+            
+            # Create rich email object with link and summary
+            email_obj = {
+                "id": msg_id,
+                "from": sender,
+                "subject": subject,
+                "date": date_str,
+                "snippet": snippet,
+                "link": f"https://mail.google.com/mail/u/0/#inbox/{msg_id}"
+            }
+            
             email_text = f"From: {sender}\nSubject: {subject}\n"
-            all_emails.append(email_text)
+            all_emails.append(email_obj)
             
             # If we used API-level filtering (gmail_query set), include all emails
             # Otherwise, do client-side filtering
             if gmail_query:
-                emails.append(email_text)
+                emails.append(email_obj)
             elif search_term:
                 words = search_term.split()
                 matched = False
@@ -231,24 +245,35 @@ def read_gmail(user_context, params):
                         break
                 
                 if matched:
-                    emails.append(email_text)
+                    emails.append(email_obj)
             else:
-                emails.append(email_text)
+                emails.append(email_obj)
         else:
             errors.append({"msg_id": msg_id, "status": msg_resp.status_code, "text": msg_resp.text})
             print(f"DEBUG: Failed to fetch message {msg_id}: {msg_resp.status_code} {msg_resp.text}")
 
     if not emails:
         if errors:
-            return {"text": f"Error fetching messages. Sample error: {errors[0]['text']}"}
+            return {"error": f"Error fetching messages. Sample error: {errors[0]['text']}"}
             
         # Fallback: if search term yielded 0 results, just return the 5 most recent emails!
         if all_emails:
-            return {"text": f"Notice: Exact query '{search_term}' not found in the most recent {len(messages)} emails. Here are the 5 most recent emails instead:\n\n" + "\n".join(all_emails[:5])}
+            return {
+                "type": "gmail_messages",
+                "summary": f"No exact matches for '{search_term}'. Showing 5 most recent emails instead.",
+                "count": min(5, len(all_emails)),
+                "messages": all_emails[:5]
+            }
             
-        return {"text": f"No emails found matching the query '{search_term}' in the recent {len(messages)} emails."}
+        return {"summary": f"No emails found matching '{search_term}' in the recent {len(messages)} emails.", "messages": []}
 
-    return {"text": "\n".join(emails)}
+    # Return rich structured data with summaries
+    return {
+        "type": "gmail_messages",
+        "summary": f"Found {len(emails)} email(s)" + (f" matching '{search_term}'" if search_term else ""),
+        "count": len(emails),
+        "messages": emails
+    }
 
 tool_registry.register("read_gmail", read_gmail)
 
