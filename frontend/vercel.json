@@ -1,12 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm ci && npm run build",
   "framework": "nextjs",
-  "installCommand": "npm ci",
-  "outputDirectory": ".next",
   "headers": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -15,7 +12,7 @@
       ]
     },
     {
-      "source": "/static/:path*",
+      "source": "/static/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -24,7 +21,7 @@
       ]
     },
     {
-      "source": "/_next/static/:path*",
+      "source": "/_next/static/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
