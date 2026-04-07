@@ -150,6 +150,90 @@ CONSENT_GUARDIAN_SCOPE_REDUCTION = Counter(
 )
 
 # =====================================
+# Scope Weaver Metrics
+# =====================================
+SCOPE_WEAVER_ACTIVATIONS = Counter(
+    'agentos_scope_weaver_activations_total',
+    'Total Scope Weaver activations',
+    ['tool', 'risk_level', 'analysis_type'],
+    registry=registry
+)
+
+SCOPE_WEAVER_EVOLUTION_AVG = Gauge(
+    'agentos_scope_weaver_evolution_avg',
+    'Average scope evolution score (0-100, higher = more scope reduction)',
+    registry=registry
+)
+
+SCOPE_WEAVER_LATENCY = Histogram(
+    'agentos_scope_weaver_latency_seconds',
+    'Scope Weaver analysis latency',
+    ['tool'],
+    buckets=(0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+    registry=registry
+)
+
+SCOPE_WEAVER_APPROVALS = Counter(
+    'agentos_scope_weaver_approvals_total',
+    'User approvals after Scope Weaver recommendation',
+    ['tool', 'risk_level', 'decision'],
+    registry=registry
+)
+
+# Internal state for calculating rolling average
+_scope_evolution_values = []
+_MAX_EVOLUTION_SAMPLES = 100
+
+# =====================================
+# Shadow Simulator Metrics
+# =====================================
+SHADOW_SIMULATION_TOTAL = Counter(
+    'agentos_shadow_simulation_total',
+    'Total shadow simulations run',
+    ['tool', 'outcome', 'analysis_type'],
+    registry=registry
+)
+
+SHADOW_SIMULATION_DURATION = Histogram(
+    'agentos_shadow_simulation_duration_seconds',
+    'Shadow simulation duration',
+    ['tool'],
+    buckets=(0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+    registry=registry
+)
+
+RISK_PREVENTED_TOTAL = Counter(
+    'agentos_risk_prevented_total',
+    'Total high-risk actions prevented/warned by Shadow Simulator',
+    ['tool'],
+    registry=registry
+)
+
+RISK_PREVENTED_COUNT = Counter(
+    'agentos_risk_prevented_count',
+    'Count of individual risks identified and potentially prevented',
+    ['tool'],
+    registry=registry
+)
+
+SHADOW_SIMULATION_DECISIONS = Counter(
+    'agentos_shadow_simulation_decisions_total',
+    'User decisions after shadow simulation',
+    ['tool', 'outcome', 'decision'],
+    registry=registry
+)
+
+SHADOW_SIMULATION_CONFIDENCE_AVG = Gauge(
+    'agentos_shadow_simulation_confidence_avg',
+    'Average confidence score of shadow simulations (0-100)',
+    registry=registry
+)
+
+# Internal state for confidence average
+_simulation_confidence_values = []
+_MAX_CONFIDENCE_SAMPLES = 100
+
+# =====================================
 # Browser Automation Metrics
 # =====================================
 BROWSER_TASKS_TOTAL = Counter(
@@ -302,6 +386,112 @@ def track_consent_guardian_decision(tool: str, risk_level: str, decision: str, l
 def track_consent_guardian_scope_reduction(tool: str, service: str):
     """Track when Consent Guardian recommends reduced scopes"""
     CONSENT_GUARDIAN_SCOPE_REDUCTION.labels(tool=tool, service=service).inc()
+
+
+def track_scope_weaver_activation(tool: str, risk_level: str, analysis_type: str):
+    """Track Scope Weaver activation"""
+    SCOPE_WEAVER_ACTIVATIONS.labels(
+        tool=tool,
+        risk_level=risk_level,
+        analysis_type=analysis_type
+    ).inc()
+
+
+def track_scope_evolution(evolution_score: int):
+    """
+    Track scope evolution score and update rolling average.
+    
+    Args:
+        evolution_score: 0-100 representing percentage of scope reduction
+    """
+    global _scope_evolution_values
+    
+    _scope_evolution_values.append(evolution_score)
+    
+    # Keep only last N samples
+    if len(_scope_evolution_values) > _MAX_EVOLUTION_SAMPLES:
+        _scope_evolution_values = _scope_evolution_values[-_MAX_EVOLUTION_SAMPLES:]
+    
+    # Update gauge with rolling average
+    if _scope_evolution_values:
+        avg = sum(_scope_evolution_values) / len(_scope_evolution_values)
+        SCOPE_WEAVER_EVOLUTION_AVG.set(avg)
+
+
+def track_scope_weaver_approval(tool: str, risk_level: str, decision: str, latency: float = 0):
+    """Track user decision after Scope Weaver recommendation"""
+    SCOPE_WEAVER_APPROVALS.labels(
+        tool=tool,
+        risk_level=risk_level,
+        decision=decision
+    ).inc()
+    if latency > 0:
+        SCOPE_WEAVER_LATENCY.labels(tool=tool).observe(latency)
+
+
+# =====================================
+# Shadow Simulator Tracking Functions
+# =====================================
+def track_shadow_simulation(tool: str, outcome: str, analysis_type: str):
+    """Track Shadow Simulator activation"""
+    SHADOW_SIMULATION_TOTAL.labels(
+        tool=tool,
+        outcome=outcome,
+        analysis_type=analysis_type
+    ).inc()
+
+
+def track_shadow_simulation_duration(tool: str, duration_seconds: float):
+    """Track Shadow Simulator analysis duration"""
+    SHADOW_SIMULATION_DURATION.labels(tool=tool).observe(duration_seconds)
+
+
+def track_risk_prevented(tool: str, risk_count: int = 1):
+    """
+    Track when high-risk actions are identified by Shadow Simulator.
+    
+    This metric helps measure how many potentially dangerous actions
+    were caught before execution.
+    """
+    RISK_PREVENTED_TOTAL.labels(tool=tool).inc()
+    RISK_PREVENTED_COUNT.labels(tool=tool).inc(risk_count)
+
+
+def track_shadow_simulation_decision(tool: str, outcome: str, decision: str):
+    """
+    Track user decision after seeing shadow simulation results.
+    
+    Args:
+        tool: Name of the tool that was simulated
+        outcome: Simulation outcome (success, caution, warning, blocked)
+        decision: User decision (executed, cancelled, modified)
+    """
+    SHADOW_SIMULATION_DECISIONS.labels(
+        tool=tool,
+        outcome=outcome,
+        decision=decision
+    ).inc()
+
+
+def track_simulation_confidence(confidence_score: float):
+    """
+    Track simulation confidence and update rolling average.
+    
+    Args:
+        confidence_score: 0-100 confidence of the simulation
+    """
+    global _simulation_confidence_values
+    
+    _simulation_confidence_values.append(confidence_score)
+    
+    # Keep only last N samples
+    if len(_simulation_confidence_values) > _MAX_CONFIDENCE_SAMPLES:
+        _simulation_confidence_values = _simulation_confidence_values[-_MAX_CONFIDENCE_SAMPLES:]
+    
+    # Update gauge with rolling average
+    if _simulation_confidence_values:
+        avg = sum(_simulation_confidence_values) / len(_simulation_confidence_values)
+        SHADOW_SIMULATION_CONFIDENCE_AVG.set(avg)
 
 
 def set_pending_approvals(count: int):
