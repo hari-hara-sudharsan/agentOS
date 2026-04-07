@@ -12,6 +12,12 @@ interface Approval {
   expires_at: string
   approved: boolean
   approved_at?: string
+  // Consent Guardian fields
+  risk_level?: string
+  ai_explanation?: string
+  recommended_scopes?: string[]
+  analysis_confidence?: number
+  has_ai_analysis?: boolean
 }
 
 const TOOL_ICONS: Record<string, string> = {
@@ -24,6 +30,20 @@ const TOOL_ICONS: Record<string, string> = {
   complete_leetcode_daily: "💻",
   get_leetcode_daily_problem: "📝",
   default: "⚡"
+}
+
+const RISK_COLORS: Record<string, { bg: string; border: string; text: string; glow: string }> = {
+  low: { bg: "rgba(34,197,94,0.15)", border: "rgba(34,197,94,0.4)", text: "#4ade80", glow: "rgba(34,197,94,0.3)" },
+  medium: { bg: "rgba(250,204,21,0.15)", border: "rgba(250,204,21,0.4)", text: "#facc15", glow: "rgba(250,204,21,0.3)" },
+  high: { bg: "rgba(249,115,22,0.15)", border: "rgba(249,115,22,0.4)", text: "#fb923c", glow: "rgba(249,115,22,0.3)" },
+  critical: { bg: "rgba(239,68,68,0.15)", border: "rgba(239,68,68,0.4)", text: "#f87171", glow: "rgba(239,68,68,0.3)" }
+}
+
+const RISK_ICONS: Record<string, string> = {
+  low: "🟢",
+  medium: "🟡",
+  high: "🟠",
+  critical: "🔴"
 }
 
 function getTimeRemaining(expiresAt: string): { minutes: number; seconds: number; expired: boolean } {
@@ -268,6 +288,9 @@ function Approvals() {
                 const time = getTimeRemaining(a.expires_at)
                 const icon = TOOL_ICONS[a.tool] || TOOL_ICONS.default
                 const isApproving = approving === a.approval_id
+                const riskLevel = a.risk_level || "medium"
+                const riskStyle = RISK_COLORS[riskLevel] || RISK_COLORS.medium
+                const riskIcon = RISK_ICONS[riskLevel] || "⚪"
                 
                 return (
                   <div
@@ -275,10 +298,11 @@ function Approvals() {
                     className="approval-card"
                     style={{
                       background: "rgba(15,22,36,0.9)",
-                      border: "1px solid rgba(249,115,22,0.2)",
+                      border: `1px solid ${riskStyle.border}`,
                       borderRadius: 16,
                       padding: "24px",
                       animation: time.expired ? "none" : "pulse-glow 3s ease-in-out infinite",
+                      boxShadow: `0 0 20px ${riskStyle.glow}`,
                     }}
                   >
                     {/* Header row */}
@@ -289,8 +313,8 @@ function Approvals() {
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <div style={{
                           width: 48, height: 48, borderRadius: 12,
-                          background: "rgba(249,115,22,0.15)",
-                          border: "1px solid rgba(249,115,22,0.3)",
+                          background: riskStyle.bg,
+                          border: `1px solid ${riskStyle.border}`,
                           display: "flex", alignItems: "center", justifyContent: "center",
                           fontSize: 24,
                         }}>
@@ -312,48 +336,163 @@ function Approvals() {
                         </div>
                       </div>
                       
-                      {/* Countdown */}
-                      <div style={{
-                        background: time.expired ? "rgba(239,68,68,0.15)" : "rgba(249,115,22,0.15)",
-                        border: `1px solid ${time.expired ? "rgba(239,68,68,0.3)" : "rgba(249,115,22,0.3)"}`,
-                        borderRadius: 10,
-                        padding: "8px 14px",
-                        textAlign: "center",
-                      }}>
+                      {/* Risk Level Badge + Countdown */}
+                      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                        {/* Risk Level Badge */}
+                        {a.risk_level && (
+                          <div style={{
+                            background: riskStyle.bg,
+                            border: `1px solid ${riskStyle.border}`,
+                            borderRadius: 10,
+                            padding: "8px 12px",
+                            textAlign: "center",
+                          }}>
+                            <div style={{
+                              fontSize: 10, color: riskStyle.text,
+                              fontFamily: "'IBM Plex Mono', monospace",
+                              letterSpacing: "0.1em",
+                              marginBottom: 2,
+                            }}>
+                              RISK LEVEL
+                            </div>
+                            <div style={{
+                              fontSize: 14, fontWeight: 700,
+                              color: riskStyle.text,
+                              display: "flex", alignItems: "center", gap: 4,
+                            }}>
+                              {riskIcon} {riskLevel.toUpperCase()}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Countdown */}
                         <div style={{
-                          fontSize: 10, color: time.expired ? "#ef4444" : "#f97316",
-                          fontFamily: "'IBM Plex Mono', monospace",
-                          letterSpacing: "0.1em",
-                          marginBottom: 2,
+                          background: time.expired ? "rgba(239,68,68,0.15)" : "rgba(249,115,22,0.15)",
+                          border: `1px solid ${time.expired ? "rgba(239,68,68,0.3)" : "rgba(249,115,22,0.3)"}`,
+                          borderRadius: 10,
+                          padding: "8px 14px",
+                          textAlign: "center",
                         }}>
-                          {time.expired ? "EXPIRED" : "EXPIRES IN"}
-                        </div>
-                        <div style={{
-                          fontSize: 18, fontWeight: 700,
-                          color: time.expired ? "#ef4444" : (time.minutes < 5 ? "#facc15" : "#f97316"),
-                          fontFamily: "'IBM Plex Mono', monospace",
-                        }}>
-                          {time.expired ? "—" : `${time.minutes}:${String(time.seconds).padStart(2, '0')}`}
+                          <div style={{
+                            fontSize: 10, color: time.expired ? "#ef4444" : "#f97316",
+                            fontFamily: "'IBM Plex Mono', monospace",
+                            letterSpacing: "0.1em",
+                            marginBottom: 2,
+                          }}>
+                            {time.expired ? "EXPIRED" : "EXPIRES IN"}
+                          </div>
+                          <div style={{
+                            fontSize: 18, fontWeight: 700,
+                            color: time.expired ? "#ef4444" : (time.minutes < 5 ? "#facc15" : "#f97316"),
+                            fontFamily: "'IBM Plex Mono', monospace",
+                          }}>
+                            {time.expired ? "—" : `${time.minutes}:${String(time.seconds).padStart(2, '0')}`}
+                          </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Binding message */}
-                    <div style={{
-                      background: "rgba(0,0,0,0.3)",
-                      borderRadius: 10,
-                      padding: "16px",
-                      marginBottom: 20,
-                      borderLeft: "3px solid #f97316",
-                    }}>
+                    {/* Consent Guardian AI Explanation Section */}
+                    {a.has_ai_analysis && a.ai_explanation && (
                       <div style={{
-                        fontSize: 13, color: "rgba(226,232,240,0.9)",
-                        fontFamily: "'IBM Plex Mono', monospace",
-                        lineHeight: 1.6,
+                        background: "linear-gradient(135deg, rgba(139,92,246,0.1) 0%, rgba(59,130,246,0.1) 100%)",
+                        border: "1px solid rgba(139,92,246,0.3)",
+                        borderRadius: 12,
+                        padding: "16px",
+                        marginBottom: 16,
                       }}>
-                        {a.binding_message}
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          marginBottom: 10,
+                        }}>
+                          <span style={{ fontSize: 16 }}>🤖</span>
+                          <span style={{
+                            fontSize: 11,
+                            color: "#a78bfa",
+                            fontFamily: "'IBM Plex Mono', monospace",
+                            letterSpacing: "0.1em",
+                            fontWeight: 600,
+                          }}>
+                            CONSENT GUARDIAN AI ANALYSIS
+                          </span>
+                          {a.analysis_confidence && (
+                            <span style={{
+                              fontSize: 10,
+                              color: "rgba(167,139,250,0.6)",
+                              fontFamily: "'IBM Plex Mono', monospace",
+                              marginLeft: "auto",
+                            }}>
+                              {Math.round(a.analysis_confidence * 100)}% confidence
+                            </span>
+                          )}
+                        </div>
+                        <div style={{
+                          fontSize: 14, color: "#e2e8f0",
+                          lineHeight: 1.7,
+                        }}>
+                          {a.ai_explanation}
+                        </div>
                       </div>
-                    </div>
+                    )}
+                    
+                    {/* Recommended Scopes Section */}
+                    {a.recommended_scopes && a.recommended_scopes.length > 0 && (
+                      <div style={{
+                        background: "rgba(34,197,94,0.08)",
+                        border: "1px solid rgba(34,197,94,0.2)",
+                        borderRadius: 10,
+                        padding: "12px 14px",
+                        marginBottom: 16,
+                      }}>
+                        <div style={{
+                          fontSize: 10,
+                          color: "#4ade80",
+                          fontFamily: "'IBM Plex Mono', monospace",
+                          letterSpacing: "0.1em",
+                          marginBottom: 8,
+                          display: "flex", alignItems: "center", gap: 6,
+                        }}>
+                          <span>🔒</span> MINIMAL SCOPES (Token Vault will use only these)
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                          {a.recommended_scopes.map((scope, idx) => (
+                            <span
+                              key={idx}
+                              style={{
+                                fontSize: 11,
+                                color: "#86efac",
+                                background: "rgba(34,197,94,0.15)",
+                                border: "1px solid rgba(34,197,94,0.3)",
+                                borderRadius: 6,
+                                padding: "4px 8px",
+                                fontFamily: "'IBM Plex Mono', monospace",
+                              }}
+                            >
+                              {scope.split('/').pop() || scope}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Legacy Binding message (if no AI analysis) */}
+                    {!a.has_ai_analysis && (
+                      <div style={{
+                        background: "rgba(0,0,0,0.3)",
+                        borderRadius: 10,
+                        padding: "16px",
+                        marginBottom: 20,
+                        borderLeft: "3px solid #f97316",
+                      }}>
+                        <div style={{
+                          fontSize: 13, color: "rgba(226,232,240,0.9)",
+                          fontFamily: "'IBM Plex Mono', monospace",
+                          lineHeight: 1.6,
+                        }}>
+                          {a.binding_message}
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Action buttons */}
                     <div style={{ display: "flex", gap: 12 }}>
@@ -393,7 +532,7 @@ function Approvals() {
                         ) : time.expired ? (
                           "Expired"
                         ) : (
-                          <>✓ Approve Action</>
+                          <>✓ Approve with Minimal Scopes</>
                         )}
                       </button>
                     </div>

@@ -12,19 +12,28 @@ router = APIRouter()
 
 @router.get("")
 def list_approvals(user=Depends(get_current_user)):
-    """Get all pending approvals for the current user."""
+    """
+    Get all pending approvals for the current user.
+    Includes Consent Guardian AI analysis when available.
+    """
     return get_pending_approvals(user)
 
 
 @router.get("/history")
 def list_approval_history(user=Depends(get_current_user), limit: int = 50):
-    """Get approval history (both approved and pending) for the current user."""
+    """
+    Get approval history (both approved and pending) for the current user.
+    Includes Consent Guardian analysis data for observability.
+    """
     return get_approval_history(user, limit)
 
 
 @router.get("/status/{approval_id}")
 def get_status(approval_id: str, user=Depends(get_current_user)):
-    """Check the status of a specific approval."""
+    """
+    Check the status of a specific approval.
+    Returns recommended_scopes for Token Vault enforcement.
+    """
     status = check_approval_status(approval_id, user)
     if status is None:
         return {"found": False, "approved": False, "expired": True}
@@ -32,12 +41,25 @@ def get_status(approval_id: str, user=Depends(get_current_user)):
         "found": True,
         "approved": status.get("approved", False),
         "expired": status.get("expired", False),
-        "binding_message": status.get("binding_message")
+        "binding_message": status.get("binding_message"),
+        # Consent Guardian data
+        "recommended_scopes": status.get("recommended_scopes", []),
+        "risk_level": status.get("risk_level"),
+        "ai_explanation": status.get("ai_explanation")
     }
 
 
 @router.post("/approve/{approval_id}")
 def approve(approval_id: str, user=Depends(get_current_user)):
-    """Approve a pending approval request."""
+    """
+    Approve a pending approval request.
+    Returns recommended_scopes that should be used for Token Vault exchange.
+    """
     ap = approve_pending_approval(approval_id, user)
-    return {"status": "approved", "approval_id": approval_id, "binding_message": ap.get("binding_message")}
+    return {
+        "status": "approved", 
+        "approval_id": approval_id, 
+        "binding_message": ap.get("binding_message"),
+        # Return recommended scopes for Token Vault to use
+        "recommended_scopes": ap.get("recommended_scopes", [])
+    }

@@ -87,17 +87,43 @@ async def execute_browser_task_async(page, tool, params):
             }
         
         elif tool == "browser_search":
-            # Handle browser search for LeetCode daily
+            # Use DuckDuckGo instead of Google (no bot detection)
             query = params.get("query", "")
-            await page.goto(f"https://www.google.com/search?q={query}", timeout=30000)
+            search_url = f"https://duckduckgo.com/?q={query}"
+            await page.goto(search_url, timeout=30000)
             await page.wait_for_load_state("domcontentloaded")
+            
+            # Wait a bit for results to load
+            await page.wait_for_timeout(2000)
             
             # Extract search results text
             try:
                 content = await page.inner_text("body")
-                return {"status": "success", "text": content[:2000]}  # Limit text
+                return {"status": "success", "text": content[:2000], "search_engine": "DuckDuckGo"}
             except:
                 return {"status": "success", "text": "Could not extract search results"}
+        
+        elif tool == "browser_scrape_url":
+            # Scrape content from a specific URL
+            url = params.get("url", "")
+            if not url:
+                return {"error": "No URL provided"}
+            
+            await page.goto(url, timeout=30000)
+            await page.wait_for_load_state("domcontentloaded")
+            
+            # Extract page content
+            try:
+                title = await page.title()
+                content = await page.inner_text("body")
+                return {
+                    "status": "success",
+                    "title": title,
+                    "text": content[:3000],
+                    "url": url
+                }
+            except Exception as e:
+                return {"error": f"Failed to scrape: {str(e)}"}
     
     except Exception as e:
         screenshot = await take_screenshot_async(page, "browser_error")

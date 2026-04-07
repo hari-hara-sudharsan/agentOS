@@ -1,0 +1,239 @@
+# AgentOS Helm Chart Default Values
+# Override these values in your deployment
+
+# Global settings
+global:
+  environment: production
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# Backend configuration
+backend:
+  replicaCount: 3
+  
+  image:
+    repository: agentos/backend
+    tag: latest
+    pullPolicy: Always
+  
+  service:
+    type: ClusterIP
+    port: 8000
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  env:
+    ENVIRONMENT: production
+    DATABASE_URL: "sqlite:///./agentos.db"
+    REDIS_URL: "redis://agentos-redis:6379/0"
+  
+  # Secrets reference
+  existingSecret: agentos-secrets
+
+# Frontend configuration
+frontend:
+  replicaCount: 2
+  
+  image:
+    repository: agentos/frontend
+    tag: latest
+    pullPolicy: Always
+  
+  service:
+    type: ClusterIP
+    port: 3000
+  
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 75
+
+# Redis configuration
+redis:
+  enabled: true
+  
+  image:
+    repository: redis
+    tag: 7-alpine
+  
+  service:
+    port: 6379
+  
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  
+  persistence:
+    enabled: false
+    size: 1Gi
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+  
+  hosts:
+    - host: agentos.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /metrics
+          pathType: Exact
+          service: backend
+  
+  tls: []
+  # - secretName: agentos-tls
+  #   hosts:
+  #     - agentos.local
+
+# Prometheus monitoring
+prometheus:
+  enabled: true
+  
+  image:
+    repository: prom/prometheus
+    tag: v2.50.0
+  
+  service:
+    port: 9090
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  
+  retention: 15d
+  
+  scrapeInterval: 15s
+
+# Grafana dashboards
+grafana:
+  enabled: true
+  
+  image:
+    repository: grafana/grafana
+    tag: 10.3.1
+  
+  service:
+    port: 3000
+  
+  adminUser: admin
+  adminPassword: agentos123  # Override in production!
+  
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  
+  # Pre-configured datasources
+  datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://{{ .Release.Name }}-prometheus:9090
+      isDefault: true
+
+# OpenClaw (local LLM sandbox)
+openclaw:
+  enabled: false  # Enable with GPU support
+  
+  image:
+    repository: ollama/ollama
+    tag: latest
+  
+  service:
+    port: 11434
+  
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2"
+    limits:
+      memory: "16Gi"
+      cpu: "8"
+  
+  gpu:
+    enabled: false
+    count: 1
+
+# Auth0 configuration (secrets)
+auth0:
+  domain: ""
+  clientId: ""
+  clientSecret: ""
+  audience: ""
+
+# OpenAI configuration (secrets)
+openai:
+  apiKey: ""
+
+# Pod disruption budgets
+podDisruptionBudget:
+  backend:
+    enabled: true
+    minAvailable: 1
+  frontend:
+    enabled: true
+    minAvailable: 1
+
+# Service accounts
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity rules
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: agentos
+          topologyKey: kubernetes.io/hostname

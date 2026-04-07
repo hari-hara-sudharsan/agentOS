@@ -48,12 +48,28 @@ SERVICE_SCOPE_MAP = {
 JWT_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
 
 def _is_raw_token(token: str) -> bool:
-    """Check if token is a direct provider token (ya29., xox.). JWTs are not 'raw' here."""
+    """Check if token is a direct provider token. JWTs are not 'raw' here."""
     if not token or token == "auth0-vault-linked":
         return False
-    # Only treat direct third-party tokens as 'raw' to avoid vault exchange.
-    # We do NOT treat JWTs as raw, because we need to EXCHANGE them.
-    return token.startswith("ya29.") or token.startswith("xox")
+    # Treat direct third-party tokens as 'raw' to avoid vault exchange.
+    # Google tokens: ya29.xxx
+    # Slack tokens: xoxb-xxx or xoxp-xxx
+    # GitHub PATs: ghp_xxx or github_pat_xxx
+    # Discord webhooks: https://discord.com/api/webhooks/...
+    # Linear API keys, Salesforce tokens, etc. - just check they're not JWTs
+    if token.startswith("ya29.") or token.startswith("xox"):
+        return True
+    if token.startswith("ghp_") or token.startswith("github_pat_"):
+        return True
+    if token.startswith("https://discord.com/api/webhooks/"):
+        return True
+    if token.startswith("lin_api_"):  # Linear API keys
+        return True
+    # For other tokens, consider them raw if they don't look like JWTs (3 dots)
+    # A JWT has format: header.payload.signature
+    if token.count(".") != 2:
+        return True
+    return False
 
 @retry(tries=3, backoff=0.3)
 def get_management_token():
@@ -140,11 +156,29 @@ def get_token_from_vault(user_context, service):
 
     return None
 
-def exchange_token(user_context, service):
-    """Attempt Auth0 Federated Token Exchange via Token Vault."""
+def exchange_token(user_context, service, recommended_scopes=None):
+    """
+    Attempt Auth0 Federated Token Exchange via Token Vault.
+    
+    Args:
+        user_context: User auth context with access token
+        service: Service name (gmail, drive, calendar, etc.)
+        recommended_scopes: Optional list of scopes from Scope Weaver (minimal scopes)
+                           If provided, uses ONLY these scopes instead of defaults
+    
+    Returns:
+        Access token or None
+    """
     connection_name = SERVICE_CONNECTION_MAP.get(service, service)
     subject_token = user_context.get("auth0_access_token")
-    scope = SERVICE_SCOPE_MAP.get(service)
+    
+    # Use Scope Weaver recommended scopes if provided, otherwise fall back to defaults
+    if recommended_scopes:
+        scope = " ".join(recommended_scopes)
+        print(f"DEBUG: Token Vault Exchange using SCOPE WEAVER scopes: {scope[:100]}...")
+    else:
+        scope = SERVICE_SCOPE_MAP.get(service)
+    
     domain = os.getenv("AUTH0_DOMAIN")
     client_id = os.getenv("AUTH0_CLIENT_ID")
     client_secret = os.getenv("AUTH0_CLIENT_SECRET")
@@ -172,6 +206,25 @@ def exchange_token(user_context, service):
     except Exception as e:
         print(f"DEBUG: Token Vault Exchange EXCEPTION - {str(e)}")
     return None
+
+
+def exchange_token_with_scope_weaver(user_context, service, approval_id=None):
+    """
+    Exchange token using Scope Weaver recommended scopes from an approved request.
+    
+    This is the primary method tools should use after approval to get tokens
+    with only the minimal scopes needed for the action.
+    """
+    recommended_scopes = None
+    
+    if approval_id:
+        from security.auth0_client import check_approval_status
+        status = check_approval_status(approval_id, user_context)
+        if status and status.get("approved") and status.get("recommended_scopes"):
+            recommended_scopes = status["recommended_scopes"]
+            print(f"DEBUG: Using Scope Weaver scopes from approval {approval_id}: {recommended_scopes}")
+    
+    return exchange_token(user_context, service, recommended_scopes)
 
 def fetch_token_from_identities(user_context, service):
     """Retrieve external provider token from Auth0 Management API."""
