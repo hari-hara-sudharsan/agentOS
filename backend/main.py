@@ -54,8 +54,9 @@ app.state.limiter = limiter
 origins = [
     "http://localhost:3000",          # for local frontend dev
     "http://localhost:8000",
-    "https://agent-bkg2z5sde-first-intern.vercel.app",
-    "https://agent-bap3k3x86-first-intern.vercel.app",
+    # "https://agent-bkg2z5sde-first-intern.vercel.app",
+    # "https://agent-bap3k3x86-first-intern.vercel.app",
+    "*",  # Allow all origins (for testing, consider restricting in production)
     "https://agentos-backend-tjx6.onrender.com"
 ]
 
