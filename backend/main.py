@@ -52,8 +52,9 @@ set_system_info(
 app.state.limiter = limiter
 
 origins = [
-    "http://localhost:3000",
-    "https://agent-dlm5mgybv-first-intern.vercel.app",
+    "http://localhost:3000",          # for local frontend dev
+    "http://localhost:8000",
+    "https://agent-bkg2z5sde-first-intern.vercel.app",
     "https://agent-bap3k3x86-first-intern.vercel.app",
     "https://agentos-backend-tjx6.onrender.com"
 ]
