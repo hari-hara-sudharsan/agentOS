@@ -201,15 +201,24 @@ def resume_agent_task(
     task = resume_req.task
     user_id = user.get("sub", "system")
     
+    # CRITICAL: The planner uses "parameters" but some code uses "params"
+    # Inject consent_granted into BOTH to ensure it reaches the tool
     if "params" not in task:
         task["params"] = {}
+    if "parameters" not in task:
+        task["parameters"] = {}
 
     # Indicate to the backend that consent has been confirmed
     task["params"]["consent_granted"] = True
+    task["parameters"]["consent_granted"] = True
+    
     if "approval_id" in task:
         task["params"]["approval_id"] = task["approval_id"]
+        task["parameters"]["approval_id"] = task["approval_id"]
     elif task.get("params", {}).get("approval_id"):
-        task["params"]["approval_id"] = task["params"]["approval_id"]
+        task["parameters"]["approval_id"] = task["params"]["approval_id"]
+    elif task.get("parameters", {}).get("approval_id"):
+        task["params"]["approval_id"] = task["parameters"]["approval_id"]
     
     start_time = time.time()
     

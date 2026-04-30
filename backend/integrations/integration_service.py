@@ -292,5 +292,37 @@ def revoke_token_from_vault(user_context, connection_name):
 
 def get_integration_token(user_context, service):
     """High-level function for tools to get a token."""
+    # Try direct service first
     token = get_token_from_vault(user_context, service)
+    
+    # If not found, try the parent Google service for Google-related tools
+    if not token and service in ("gmail", "drive", "calendar"):
+        token = get_token_from_vault(user_context, "google")
+    
+    # If we have a token, validate it's not obviously expired for Google services
+    if token and token.startswith("ya29."):
+        # Quick validation: try a lightweight Google API call
+        try:
+            test_res = requests.get(
+                "https://www.googleapis.com/oauth2/v1/tokeninfo",
+                params={"access_token": token},
+                timeout=5
+            )
+            if test_res.status_code != 200:
+                print(f"DEBUG: Token for {service} is expired, attempting refresh via vault")
+                # Token expired - try to get fresh one from Auth0
+                fresh = exchange_token(user_context, service)
+                if fresh:
+                    save_integration(user_context["sub"], service, fresh)
+                    return fresh
+                # Also try fetching from identities
+                fresh = fetch_token_from_identities(user_context, service)
+                if fresh:
+                    save_integration(user_context["sub"], service, fresh)
+                    return fresh
+                print(f"DEBUG: Could not refresh token for {service}")
+        except Exception as e:
+            print(f"DEBUG: Token validation failed: {e}")
+    
     return token
+

@@ -139,7 +139,6 @@ function Approvals() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
 
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(10px); }
@@ -178,7 +177,7 @@ function Approvals() {
           minHeight: "100vh",
           background: "#090d14",
           padding: "40px 32px",
-          fontFamily: "'Syne', sans-serif",
+          fontFamily: "var(--font-display, 'Inter', sans-serif)",
           position: "relative",
           overflow: "hidden",
         }}

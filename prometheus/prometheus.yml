@@ -1,0 +1,72 @@
+# Prometheus Configuration for AgentOS
+# Scrapes metrics from FastAPI backend and other services
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'agentos-local'
+    environment: 'development'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # - alertmanager:9093
+
+# Rule files for alerts
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+# Scrape configurations
+scrape_configs:
+  # =====================================
+  # Prometheus self-monitoring
+  # =====================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+
+  # =====================================
+  # AgentOS Backend (FastAPI)
+  # =====================================
+  - job_name: 'agentos-backend'
+    static_configs:
+      - targets: ['backend:8000']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'agentos-backend'
+
+  # =====================================
+  # Redis Metrics (via Redis Exporter)
+  # =====================================
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: /metrics
+    # Note: Requires redis_exporter sidecar for full metrics
+
+  # =====================================
+  # Node Exporter (System Metrics)
+  # =====================================
+  # Uncomment if node_exporter is deployed
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+
+  # =====================================
+  # OpenClaw Metrics (if available)
+  # =====================================
+  - job_name: 'openclaw'
+    static_configs:
+      - targets: ['openclaw:11434']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    # Ollama doesn't expose Prometheus metrics by default
+    # This is a placeholder for future instrumentation

@@ -6,20 +6,31 @@ from datetime import datetime, timedelta
 import re
 
 
+# User timezone — used when the user provides natural language times like "3pm"
+# This should match the user's local timezone. IST = UTC+5:30
+USER_TIMEZONE = "Asia/Kolkata"
+USER_UTC_OFFSET = "+05:30"
+
+
 def parse_datetime(time_str):
-    """Parse natural language or ISO datetime strings."""
+    """Parse natural language or ISO datetime strings using user's timezone."""
     if not time_str:
         return None
     
     # If already ISO format, return as-is
     if re.match(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}', time_str):
-        # Ensure timezone
         if not time_str.endswith('Z') and '+' not in time_str and '-' not in time_str[-6:]:
-            time_str += '+00:00'
+            time_str += USER_UTC_OFFSET
         return time_str
     
-    now = datetime.now()
-    time_lower = time_str.lower()
+    # Use current time in user's timezone for relative date calculations
+    # IST = UTC + 5:30
+    from datetime import timezone
+    utc_now = datetime.now(timezone.utc)
+    ist_offset = timezone(timedelta(hours=5, minutes=30))
+    now = utc_now.astimezone(ist_offset)
+    
+    time_lower = time_str.lower().strip()
     
     # Parse relative dates
     if 'tomorrow' in time_lower:
@@ -28,10 +39,31 @@ def parse_datetime(time_str):
         base_date = now
     elif 'next week' in time_lower:
         base_date = now + timedelta(days=7)
+    elif 'day after tomorrow' in time_lower:
+        base_date = now + timedelta(days=2)
     else:
-        base_date = now
+        # Try to find a specific date like "May 1" or "1st May"
+        date_match = re.search(r'(\d{1,2})(?:st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*', time_lower)
+        if not date_match:
+            date_match = re.search(r'(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+(\d{1,2})', time_lower)
+        
+        if date_match:
+            months = {'jan':1,'feb':2,'mar':3,'apr':4,'may':5,'jun':6,'jul':7,'aug':8,'sep':9,'oct':10,'nov':11,'dec':12}
+            groups = date_match.groups()
+            if groups[0].isdigit():
+                day = int(groups[0])
+                month = months.get(groups[1][:3], now.month)
+            else:
+                month = months.get(groups[0][:3], now.month)
+                day = int(groups[1])
+            year = now.year
+            if month < now.month or (month == now.month and day < now.day):
+                year += 1
+            base_date = now.replace(year=year, month=month, day=day)
+        else:
+            base_date = now
     
-    # Parse time
+    # Parse time (e.g., "3pm", "3:30 pm", "15:00")
     time_match = re.search(r'(\d{1,2})(?::(\d{2}))?\s*(am|pm)?', time_lower)
     if time_match:
         hour = int(time_match.group(1))
@@ -42,10 +74,14 @@ def parse_datetime(time_str):
             hour += 12
         elif meridiem == 'am' and hour == 12:
             hour = 0
+        elif not meridiem and hour < 8:
+            # Assume PM for small numbers without am/pm (e.g., "3" -> 3pm)
+            hour += 12
         
         base_date = base_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
     
-    return base_date.isoformat()
+    # Return ISO with the user's timezone offset
+    return base_date.strftime('%Y-%m-%dT%H:%M:%S') + USER_UTC_OFFSET
 
 
 def create_calendar_event(user_context, params):
@@ -87,9 +123,9 @@ def create_calendar_event(user_context, params):
     # Default end time to 1 hour after start
     if start_time and not end_time:
         try:
-            start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+            start_dt = datetime.fromisoformat(start_time)
             end_dt = start_dt + timedelta(hours=1)
-            end_time = end_dt.isoformat()
+            end_time = end_dt.strftime('%Y-%m-%dT%H:%M:%S') + USER_UTC_OFFSET
         except:
             end_time = start_time  # Fallback
     
@@ -107,8 +143,8 @@ def create_calendar_event(user_context, params):
 
     event = {
         "summary": title,
-        "start": {"dateTime": start_time, "timeZone": "UTC"},
-        "end": {"dateTime": end_time, "timeZone": "UTC"}
+        "start": {"dateTime": start_time, "timeZone": USER_TIMEZONE},
+        "end": {"dateTime": end_time, "timeZone": USER_TIMEZONE}
     }
     
     # Add description if provided
@@ -121,7 +157,6 @@ def create_calendar_event(user_context, params):
     response = requests.post(url, headers=headers, json=event)
 
     if response.status_code == 401:
-        # Token expired - purge and ask for re-auth
         try:
             from database.db import SessionLocal
             from database.models import Integration
@@ -132,7 +167,6 @@ def create_calendar_event(user_context, params):
             ).delete()
             db.commit()
             db.close()
-            print(f"DEBUG: Purged expired Calendar token")
         except Exception as e:
             print(f"DEBUG: Failed to purge token: {e}")
             
@@ -151,11 +185,6 @@ def create_calendar_event(user_context, params):
             "error": "calendar_permission_denied",
             "message": "Permission denied. Make sure you granted calendar.events scope.",
             "details": response.text,
-            "steps": [
-                "1. Go to the Integrations page",
-                "2. Disconnect and reconnect Calendar",
-                "3. Ensure you check the Calendar permissions checkbox"
-            ]
         }
     
     if response.status_code not in [200, 201]:

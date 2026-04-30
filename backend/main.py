@@ -15,6 +15,72 @@ from database.db import engine
 from database.models import Base
 from utils.rate_limiter import limiter
 
+def auto_migrate_db():
+    """
+    Safely add missing columns to existing tables without dropping data.
+    Uses ALTER TABLE ADD COLUMN for SQLite compatibility.
+    """
+    from sqlalchemy import inspect, text, Column, Integer, String, Text, Float, Boolean, DateTime
+    
+    type_map = {
+        "VARCHAR": "TEXT",
+        "TEXT": "TEXT",
+        "INTEGER": "INTEGER",
+        "FLOAT": "REAL",
+        "BOOLEAN": "INTEGER",
+        "DATETIME": "TEXT",
+    }
+    
+    inspector = inspect(engine)
+    existing_tables = inspector.get_table_names()
+    
+    for table_name, table in Base.metadata.tables.items():
+        if table_name not in existing_tables:
+            continue  # create_all will handle new tables
+        
+        existing_cols = {col["name"] for col in inspector.get_columns(table_name)}
+        model_cols = {col.name: col for col in table.columns}
+        
+        missing = set(model_cols.keys()) - existing_cols
+        if not missing:
+            continue
+        
+        print(f"🔄 Auto-migrating table '{table_name}': adding {len(missing)} missing column(s)")
+        
+        with engine.connect() as conn:
+            for col_name in missing:
+                col = model_cols[col_name]
+                col_type_str = str(col.type)
+                # Map SQLAlchemy types to SQLite types
+                sqlite_type = "TEXT"
+                for sa_type, sq_type in type_map.items():
+                    if sa_type in col_type_str.upper():
+                        sqlite_type = sq_type
+                        break
+                
+                nullable = "NULL" if col.nullable else "NOT NULL"
+                default = ""
+                if col.default is not None:
+                    default = f" DEFAULT NULL"
+                elif not col.nullable:
+                    if sqlite_type in ("INTEGER", "REAL"):
+                        default = " DEFAULT 0"
+                    else:
+                        default = " DEFAULT ''"
+                
+                sql = f'ALTER TABLE "{table_name}" ADD COLUMN "{col_name}" {sqlite_type} {nullable}{default}'
+                try:
+                    conn.execute(text(sql))
+                    print(f"   ✅ Added column: {col_name} ({sqlite_type})")
+                except Exception as e:
+                    if "duplicate column" in str(e).lower():
+                        pass  # Column already exists
+                    else:
+                        print(f"   ⚠️ Could not add column {col_name}: {e}")
+            conn.commit()
+    
+    print("✅ Database schema is up to date")
+
 # Import all tools to register them
 import tools.gmail_tool
 import tools.slack_tool
@@ -52,7 +118,12 @@ set_system_info(
 app.state.limiter = limiter
 
 origins = [
-    "http://localhost:3000"
+    "http://localhost:3000",          # for local frontend dev
+    "http://localhost:8000",
+    # "https://agent-bkg2z5sde-first-intern.vercel.app",
+    # "https://agent-bap3k3x86-first-intern.vercel.app",
+    "*",  # Allow all origins (for testing, consider restricting in production)
+    "https://agentos-backend-tjx6.onrender.com"
 ]
 
 # Add Prometheus metrics middleware
@@ -67,6 +138,7 @@ app.add_middleware(
 )
 
 Base.metadata.create_all(bind=engine)
+auto_migrate_db()  # Add any missing columns to existing tables
 
 app.include_router(api_router, prefix="/api")
 

@@ -1,0 +1,198 @@
+# Prometheus Alert Rules for AgentOS
+# Defines alerting conditions for critical metrics
+
+groups:
+  # =====================================
+  # Token Vault Alerts
+  # =====================================
+  - name: token_vault_alerts
+    rules:
+      - alert: TokenVaultHighErrorRate
+        expr: |
+          sum(rate(agentos_token_vault_errors_total[5m])) 
+          / 
+          sum(rate(agentos_token_vault_exchange_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: token_vault
+        annotations:
+          summary: "High Token Vault error rate"
+          description: "Token Vault error rate is above 10% for the last 5 minutes"
+
+      - alert: TokenVaultExchangeLatencyHigh
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(agentos_token_vault_exchange_duration_seconds_bucket[5m])) 
+            by (le, provider)
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: token_vault
+        annotations:
+          summary: "High Token Vault exchange latency"
+          description: "95th percentile Token Vault exchange latency is above 5 seconds"
+
+  # =====================================
+  # Step-Up / CIBA Authentication Alerts
+  # =====================================
+  - name: stepup_alerts
+    rules:
+      - alert: StepUpPendingApprovalsHigh
+        expr: agentos_ciba_pending_approvals > 10
+        for: 10m
+        labels:
+          severity: warning
+          component: authentication
+        annotations:
+          summary: "Many pending step-up approvals"
+          description: "More than 10 step-up approvals have been pending for over 10 minutes"
+
+      - alert: StepUpApprovalLatencyHigh
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(agentos_stepup_approval_latency_seconds_bucket[5m])) 
+            by (le, tool)
+          ) > 120
+        for: 5m
+        labels:
+          severity: warning
+          component: authentication
+        annotations:
+          summary: "High step-up approval latency"
+          description: "Users are taking more than 2 minutes on average to approve step-up requests"
+
+  # =====================================
+  # Agent Tool Execution Alerts
+  # =====================================
+  - name: agent_alerts
+    rules:
+      - alert: ToolExecutionErrorRateHigh
+        expr: |
+          sum by (tool) (rate(agentos_tool_errors_total[5m])) 
+          / 
+          sum by (tool) (rate(agentos_tool_calls_total[5m])) > 0.2
+        for: 5m
+        labels:
+          severity: critical
+          component: agent
+        annotations:
+          summary: "High tool execution error rate for {{ $labels.tool }}"
+          description: "Tool {{ $labels.tool }} has error rate above 20%"
+
+      - alert: ToolExecutionLatencyHigh
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(agentos_tool_execution_duration_seconds_bucket[5m])) 
+            by (le, tool)
+          ) > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: agent
+        annotations:
+          summary: "High tool execution latency for {{ $labels.tool }}"
+          description: "Tool {{ $labels.tool }} 95th percentile latency is above 30 seconds"
+
+      - alert: NoActiveExecutions
+        expr: agentos_active_executions == 0 and agentos_http_requests_total > 0
+        for: 30m
+        labels:
+          severity: info
+          component: agent
+        annotations:
+          summary: "No active agent executions"
+          description: "No agent executions have been active for 30 minutes"
+
+  # =====================================
+  # OpenClaw Bridge Alerts
+  # =====================================
+  - name: openclaw_alerts
+    rules:
+      - alert: OpenClawHighErrorRate
+        expr: |
+          sum(rate(agentos_openclaw_requests_total{status="failure"}[5m])) 
+          / 
+          sum(rate(agentos_openclaw_requests_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: openclaw
+        annotations:
+          summary: "High OpenClaw error rate"
+          description: "OpenClaw bridge error rate is above 10%"
+
+      - alert: OpenClawNoActiveSessions
+        expr: agentos_openclaw_active_sessions == 0
+        for: 15m
+        labels:
+          severity: warning
+          component: openclaw
+        annotations:
+          summary: "No active OpenClaw sessions"
+          description: "No OpenClaw sessions have been active for 15 minutes"
+
+  # =====================================
+  # HTTP / API Alerts
+  # =====================================
+  - name: http_alerts
+    rules:
+      - alert: HighHTTPErrorRate
+        expr: |
+          sum(rate(agentos_http_requests_total{status_code=~"5.."}[5m])) 
+          / 
+          sum(rate(agentos_http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High HTTP 5xx error rate"
+          description: "HTTP 5xx error rate is above 5%"
+
+      - alert: HighHTTPLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(agentos_http_request_duration_seconds_bucket[5m])) 
+            by (le)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High HTTP request latency"
+          description: "95th percentile HTTP latency is above 2 seconds"
+
+  # =====================================
+  # Browser Automation Alerts
+  # =====================================
+  - name: browser_alerts
+    rules:
+      - alert: BrowserTaskHighErrorRate
+        expr: |
+          sum by (task_type) (rate(agentos_browser_tasks_total{status="failure"}[5m])) 
+          / 
+          sum by (task_type) (rate(agentos_browser_tasks_total[5m])) > 0.3
+        for: 10m
+        labels:
+          severity: warning
+          component: browser
+        annotations:
+          summary: "High browser task error rate for {{ $labels.task_type }}"
+          description: "Browser task {{ $labels.task_type }} has error rate above 30%"
+
+      - alert: BrowserTaskLatencyHigh
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(agentos_browser_task_duration_seconds_bucket[5m])) 
+            by (le, task_type)
+          ) > 60
+        for: 5m
+        labels:
+          severity: warning
+          component: browser
+        annotations:
+          summary: "High browser task latency for {{ $labels.task_type }}"
+          description: "Browser task {{ $labels.task_type }} 95th percentile is above 60 seconds"

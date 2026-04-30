@@ -61,10 +61,17 @@ def send_slack_message(user_context, params, memory=None):
     result = response.json()
     
     if result.get("ok"):
+        # Construct Slack message link
+        ts = result.get("ts", "").replace(".", "")
+        channel_id = result.get("channel", channel)
+        # Note: Slack links require workspace domain which we don't have
+        # Using a generic approach that will open Slack app
         return {
             "status": "success",
             "channel": channel,
-            "message": f"Message sent to {channel}"
+            "message": f"✅ Message sent to {channel}",
+            "timestamp": result.get("ts"),
+            "channel_id": channel_id
         }
     else:
         return {
