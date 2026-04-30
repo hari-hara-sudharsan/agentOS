@@ -182,7 +182,7 @@ docker-compose --profile gpu up -d
 
 | | URL |
 |-|-----|
-| 🌐 Frontend | https://agent-dlm5mgybv-first-intern.vercel.app/ |
+| 🌐 Frontend | https://agent-os-git-fresh-changes-first-intern.vercel.app/ |
 | ⚙️ Backend API | https://agentos-backend-tjx6.onrender.com/ |
 
 *A public demo test account can be provided to judges upon request.*
