@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
 import MessageInput from "./MessageInput"
 import ExecutionPanel from "./ExecutionPanel"
@@ -51,9 +51,15 @@ export default function ChatBox() {
     sessionStorage.setItem(STORAGE_KEYS.tick, tick.toString())
   }, [tick])
 
+  // Use a ref for steps to avoid re-creating the callback on every steps change
+  const stepsRef = useRef(steps)
+  stepsRef.current = steps
+  const resumingRef = useRef<Set<string>>(new Set())
+
   // Check for pending approvals that have been approved
   const checkAndResumeApprovals = useCallback(async () => {
-    const pendingSteps = steps.filter(s => s.status === "awaiting_consent" && s.approval_id)
+    const currentSteps = stepsRef.current
+    const pendingSteps = currentSteps.filter(s => s.status === "awaiting_consent" && s.approval_id)
     
     if (pendingSteps.length === 0) return
 
@@ -61,7 +67,9 @@ export default function ChatBox() {
       const token = await getAccessTokenSilently()
       
       for (const step of pendingSteps) {
-        // Check if this approval was granted
+        // Guard: skip if already resuming this step
+        if (resumingRef.current.has(step.approval_id)) continue
+        
         const res = await fetch(`${API_BASE_URL}/api/approvals/status/${step.approval_id}`, {
           headers: { "Authorization": `Bearer ${token}` }
         })
@@ -69,7 +77,8 @@ export default function ChatBox() {
         if (res.ok) {
           const data = await res.json()
           if (data.approved) {
-            // Auto-resume this task!
+            // Mark as resuming to prevent duplicate calls
+            resumingRef.current.add(step.approval_id)
             handleResume(step.tool, step.task)
           }
         }
@@ -77,12 +86,12 @@ export default function ChatBox() {
     } catch (e) {
       console.log("Error checking approvals:", e)
     }
-  }, [steps, getAccessTokenSilently])
+  }, [getAccessTokenSilently])  // No `steps` dependency — uses ref
 
-  // Check for approved tasks when component mounts or steps change
+  // Check for approved tasks when component mounts
   useEffect(() => {
     checkAndResumeApprovals()
-  }, [])  // Only on mount - we'll also trigger this after navigation
+  }, [])
 
   // Poll for approval status every 5 seconds for pending items
   useEffect(() => {
@@ -91,7 +100,7 @@ export default function ChatBox() {
 
     const interval = setInterval(checkAndResumeApprovals, 5000)
     return () => clearInterval(interval)
-  }, [steps, checkAndResumeApprovals])
+  }, [steps.filter(s => s.status === "awaiting_consent").length])
 
   async function handleResume(tool: string, task: any) {
     updateStep(tool, "running");
