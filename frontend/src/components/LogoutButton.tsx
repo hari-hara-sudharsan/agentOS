@@ -7,17 +7,37 @@ export default function LogoutButton() {
   const { logout } = useAuth0()
 
   return (
-    <button
-      onClick={() =>
-        logout({
-          logoutParams: {
-            returnTo: window.location.origin,
-          },
-        })
-      }
-      className="bg-transparent border border-amber-600 hover:border-amber-400 text-amber-200 hover:text-white hover:bg-red-700/30 px-5 py-2 text-sm uppercase tracking-widest font-medium transition-all duration-300 rounded-lg hover:shadow-lg"
-    >
-      Logout
-    </button>
+    <>
+      <style>{`
+        .logout-btn {
+          font-family: var(--font-mono);
+          font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+          padding: 7px 14px;
+          border-radius: var(--radius-sm);
+          border: 1px solid var(--border-subtle);
+          background: transparent;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.25s ease;
+        }
+        .logout-btn:hover {
+          border-color: var(--red);
+          color: var(--red-light);
+          background: rgba(239,68,68,0.08);
+        }
+      `}</style>
+      <button
+        className="logout-btn"
+        onClick={() =>
+          logout({
+            logoutParams: {
+              returnTo: window.location.origin,
+            },
+          })
+        }
+      >
+        Logout
+      </button>
+    </>
   )
 }

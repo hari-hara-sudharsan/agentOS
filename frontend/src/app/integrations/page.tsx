@@ -42,50 +42,131 @@ function Integrations() {
   }, [getAccessTokenSilently])
 
   return (
-    <div className="min-h-screen py-16 px-4 max-w-6xl mx-auto">
-      
-      <div className="mb-12">
-        <h1 className="font-display text-4xl sm:text-6xl mb-4">
-          Connected <span className="text-amber-500">Services</span>
-        </h1>
-        <p className="text-slate-400 max-w-2xl text-lg">
-          Manage your system integrations and authorized service connections.
-        </p>
+    <>
+      <style>{`
+        .intg-page {
+          padding: 40px 0;
+          max-width: 1100px;
+          margin: 0 auto;
+          animation: fadeUp 0.5s var(--ease-out) both;
+        }
+        .intg-header { margin-bottom: 40px; }
+        .intg-eyebrow {
+          display: inline-flex; align-items: center; gap: 8px;
+          font-family: var(--font-mono);
+          font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+          color: var(--text-label);
+          margin-bottom: 12px;
+        }
+        .intg-eyebrow::before {
+          content: '';
+          width: 20px; height: 2px;
+          background: linear-gradient(90deg, var(--violet), var(--cyan));
+        }
+        .intg-title {
+          font-family: var(--font-display);
+          font-size: 36px; font-weight: 700; letter-spacing: -0.02em;
+          line-height: 1.1;
+          margin-bottom: 8px;
+        }
+        .intg-title span {
+          background: linear-gradient(135deg, var(--violet-light), var(--cyan));
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .intg-subtitle {
+          font-size: 14px; color: var(--text-secondary);
+          max-width: 500px;
+        }
+        .intg-stats {
+          display: flex; gap: 24px; align-items: center;
+          margin-top: 24px;
+          padding: 16px 20px;
+          background: var(--bg-panel);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-lg);
+          width: fit-content;
+          backdrop-filter: blur(16px);
+        }
+        .intg-stat {
+          display: flex; flex-direction: column; gap: 4px;
+        }
+        .intg-stat-label {
+          font-family: var(--font-mono);
+          font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+          color: var(--text-muted);
+        }
+        .intg-stat-value {
+          font-family: var(--font-display);
+          font-size: 20px; font-weight: 700;
+          background: linear-gradient(135deg, var(--green-light), var(--cyan));
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .intg-stat-divider {
+          width: 1px; height: 28px;
+          background: var(--border-subtle);
+        }
+        .intg-divider {
+          height: 1px;
+          background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+          margin: 32px 0;
+        }
+        .intg-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+          gap: 20px;
+        }
+        @media (max-width: 640px) {
+          .intg-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
 
-        {loaded && (
-           <div className="mt-8 flex gap-8 items-center bg-slate-800/50 p-6 rounded-lg border border-slate-700 w-fit">
-              <div className="flex flex-col">
-                <span className="text-xs uppercase text-slate-500 font-bold">Status</span>
-                <span className="text-2xl font-display text-emerald-400 uppercase">Vault Active</span>
+      <div className="intg-page">
+        <div className="intg-header">
+          <div className="intg-eyebrow">Service Connections</div>
+          <h1 className="intg-title">
+            Connected <span>Services</span>
+          </h1>
+          <p className="intg-subtitle">
+            Manage your system integrations and authorized service connections.
+          </p>
+
+          {loaded && (
+            <div className="intg-stats">
+              <div className="intg-stat">
+                <span className="intg-stat-label">Status</span>
+                <span className="intg-stat-value">Vault Active</span>
               </div>
-              <div className="h-8 w-px bg-slate-700" />
-              <div className="flex flex-col">
-                <span className="text-xs uppercase text-slate-500 font-bold">Integrations</span>
-                <span className="text-2xl font-display">{String(services.length).padStart(2, "0")} Available</span>
+              <div className="intg-stat-divider" />
+              <div className="intg-stat">
+                <span className="intg-stat-label">Integrations</span>
+                <span className="intg-stat-value">{String(services.length).padStart(2, "0")} Available</span>
               </div>
-           </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
 
-      <hr className="my-12 border-slate-800" />
+        <div className="intg-divider" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {services.map((s: any) => (
-           <div key={s.service}>
+        <div className="intg-grid">
+          {services.map((s: any) => (
+            <div key={s.service}>
               <IntegrationCard service={s} />
-           </div>
-        ))}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
 export default withAuthenticationRequired(Integrations, {
   onRedirecting: () => (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-pulse flex flex-col items-center">
-        <div className="h-12 w-12 rounded-full border-4 border-amber-500 border-t-transparent animate-spin mb-4"></div>
-        <p className="text-slate-400 font-mono text-sm tracking-widest uppercase">Authenticating...</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid rgba(139,92,246,0.2)', borderTopColor: 'var(--violet)', animation: 'spin 1s linear infinite' }} />
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Authenticating...</p>
       </div>
     </div>
   )

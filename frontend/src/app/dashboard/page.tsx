@@ -117,14 +117,13 @@ export default function Dashboard() {
         </div>
         <span className="loading-text">Initializing session…</span>
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Geist+Mono:wght@300;400;500&display=swap');
           .loading-screen {
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             height: 100vh;
             background: radial-gradient(ellipse 80% 80% at 50% 50%, #0c1020 0%, #06080f 100%);
             gap: 24px;
-            font-family: 'Geist Mono', monospace;
+            font-family: var(--font-mono, monospace);
           }
           .loading-ring {
             width: 56px; height: 56px;
@@ -154,7 +153,6 @@ export default function Dashboard() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Geist+Mono:wght@300;400;500&display=swap');
 
         :root {
           --bg-void:        #0a0c14;
@@ -211,7 +209,7 @@ export default function Dashboard() {
         .dash-root {
           min-height: 100vh;
           background: var(--bg-void);
-          font-family: 'Geist Mono', monospace;
+          font-family: var(--font-body, 'Inter', sans-serif);
           color: var(--text-base);
           position: relative;
           overflow-x: hidden;
@@ -274,7 +272,7 @@ export default function Dashboard() {
         }
 
         .brand-name {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: var(--font-display, 'Inter', sans-serif);
           font-size: 18px; font-weight: 600;
           letter-spacing: 0.1em;
           background: linear-gradient(130deg, #a78bfa 0%, #8b5cf6 35%, #06b6d4 65%, #10b981 100%);
@@ -467,8 +465,8 @@ export default function Dashboard() {
         }
 
         .page-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 36px; font-weight: 300; letter-spacing: 0.02em;
+          font-family: var(--font-display, 'Inter', sans-serif);
+          font-size: 36px; font-weight: 700; letter-spacing: -0.02em;
           line-height: 1.05;
           background: linear-gradient(130deg, #ffffff 0%, var(--primary-light) 50%, var(--accent) 100%);
           -webkit-background-clip: text;
@@ -486,7 +484,7 @@ export default function Dashboard() {
         .btn {
           padding: 10px 20px;
           border-radius: var(--radius-sm);
-          font-family: 'Geist Mono', monospace;
+          font-family: var(--font-mono, monospace);
           font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
           cursor: pointer;
           transition: all 0.25s ease;
@@ -572,8 +570,8 @@ export default function Dashboard() {
         }
 
         .stat-value {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 32px; font-weight: 300;
+          font-family: var(--font-display, 'Inter', sans-serif);
+          font-size: 32px; font-weight: 700;
           background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary-light) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;

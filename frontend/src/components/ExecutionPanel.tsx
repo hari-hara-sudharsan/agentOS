@@ -417,11 +417,9 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap');
-
         /* ══ PANEL ══ */
         .ep-panel {
-          font-family: 'DM Mono', monospace;
+          font-family: var(--font-body, 'Inter', sans-serif);
           display: flex;
           flex-direction: column;
           gap: 0;
@@ -449,7 +447,7 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
         }
 
         .ep-goal-text {
-          font-family: 'Bebas Neue', sans-serif;
+          font-family: var(--font-display, 'Inter', sans-serif);
           font-size: 26px; letter-spacing: 0.06em;
           background: linear-gradient(135deg, rgba(240,245,250,0.95) 0%, rgba(167,139,250,0.9) 100%);
           -webkit-background-clip: text;
@@ -494,7 +492,7 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
           font-weight: 600;
         }
         .ep-count-val {
-          font-family: 'Bebas Neue', sans-serif;
+          font-family: var(--font-display, 'Inter', sans-serif);
           font-size: 26px; letter-spacing: 0.04em;
           line-height: 1;
         }
@@ -531,7 +529,7 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
           font-size: 10px; letter-spacing: 0.2em;
           color: rgba(148,163,184,0.55);
           min-width: 24px; flex-shrink: 0;
-          font-family: 'Bebas Neue', sans-serif;
+          font-family: var(--font-display, 'Inter', sans-serif);
           font-weight: 600;
         }
 
@@ -628,7 +626,7 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
         }
 
         .ep-result-pre {
-          font-family: 'DM Mono', monospace;
+          font-family: var(--font-mono, monospace);
           font-size: 10px; line-height: 1.65;
           color: rgba(180,190,210,0.65);
           white-space: pre-wrap; word-break: break-all;
@@ -786,7 +784,7 @@ export default function ExecutionPanel({ goal, steps, onResume }: ExecutionPanel
           padding: 40px 0; gap: 10px;
         }
         .ep-empty-glyph {
-          font-family: 'Bebas Neue', sans-serif;
+          font-family: var(--font-display, 'Inter', sans-serif);
           font-size: 36px; letter-spacing: 0.12em;
           color: rgba(255,40,40,0.08);
           line-height: 1;
