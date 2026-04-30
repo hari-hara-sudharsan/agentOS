@@ -77,6 +77,28 @@ function ResultBlock({ tool, result, onResume }: { tool: string, result: any, on
     )
   }
 
+  // Awaiting approval - show security halt UI with authorize button
+  if (result.awaiting_approval && result.task) {
+    const binding = result.binding_message || "Human authorization required for this operation."
+    return (
+      <div className="ep-result ep-result--error">
+        <span className="ep-result-label" style={{ color: "#a855f7" }}>// AWAITING APPROVAL (STEP-UP AUTH)</span>
+        <p className="ep-result-body ep-result-body--error" style={{ color: "rgba(168,85,247,0.85)" }}>{result.message || binding}</p>
+        <p className="ep-result-body ep-result-body--error" style={{ color: "rgba(255,255,255,0.75)", marginTop: "0.3rem" }}><strong>Approval ID</strong> {result.approval_id || "unknown"}</p>
+        {onResume && (
+          <button 
+            style={{ marginTop: "10px", padding: "6px 12px", background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.4)", color: "#c084fc", borderRadius: "4px", fontSize: "9px", letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", alignSelf: "flex-start" }}
+            onClick={() => onResume(tool, { ...result.task, params: { ...result.task.params, consent_granted: true, approval_id: result.approval_id } })}
+            onMouseOver={(e) => e.currentTarget.style.background = "rgba(168,85,247,0.3)"}
+            onMouseOut={(e) => e.currentTarget.style.background = "rgba(168,85,247,0.15)"}
+          >
+            [ Authorize Token Vault Step-Up ]
+          </button>
+        )}
+      </div>
+    )
+  }
+
   if (result.error) {
     if (result.task) {
       const binding = result.binding_message || "Human authorization required for dangerous operation."

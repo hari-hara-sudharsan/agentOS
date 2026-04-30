@@ -8,7 +8,9 @@
 ## Issues Found & Fixed
 
 ### 1. CORS Configuration ✅ FIXED
+
 Updated `backend/main.py` to include both Vercel URLs:
+
 - https://agent-dlm5mgybv-first-intern.vercel.app (NEW deployment)
 - https://agent-bap3k3x86-first-intern.vercel.app (OLD deployment)
 
@@ -35,21 +37,25 @@ Environment: Production (and Preview if needed)
 ### 3. Backend Deployment Status
 
 Your backend should be deployed on **Render.com** at:
+
 ```
 https://agentos-backend-tjx6.onrender.com
 ```
 
 **Test if it's running**:
+
 ```bash
 curl https://agentos-backend-tjx6.onrender.com/
 ```
 
 Expected response:
+
 ```json
-{"message":"AgentOS backend running"}
+{ "message": "AgentOS backend running" }
 ```
 
 **If backend is NOT running:**
+
 - Check your Render.com dashboard
 - Make sure the service is deployed and not spun down (free tier)
 - Check logs for any errors
@@ -60,9 +66,11 @@ Expected response:
 ## Quick Fix Steps
 
 ### Step 1: Update CORS in Backend (DONE ✅)
+
 The backend `main.py` now includes both Vercel URLs.
 
 ### Step 2: Commit and Deploy Backend
+
 ```bash
 cd backend
 git add main.py
@@ -71,16 +79,19 @@ git push origin fresh-changes
 ```
 
 Then deploy to Render (if auto-deploy is disabled):
+
 - Go to Render.com dashboard
 - Manual deploy or merge to main branch
 
 ### Step 3: Update Vercel Environment Variable
+
 1. Vercel Dashboard → Settings → Environment Variables
 2. Edit `NEXT_PUBLIC_API_URL`
 3. Set to: `https://agentos-backend-tjx6.onrender.com`
 4. Save and redeploy
 
 ### Step 4: Test Everything
+
 1. Visit: https://agent-dlm5mgybv-first-intern.vercel.app/
 2. Open DevTools (F12) → Network tab
 3. Try to use a feature
@@ -105,19 +116,25 @@ Your backend should respond to:
 ## Troubleshooting
 
 ### Issue: "CORS error" in browser console
+
 **Solution**: Make sure backend CORS includes your Vercel URL (already fixed in main.py)
 
 ### Issue: "Failed to fetch" or network error
-**Solution**: 
+
+**Solution**:
+
 1. Check backend is running (visit backend URL in browser)
 2. Check Vercel env var is set correctly
 3. Redeploy frontend after changing env var
 
 ### Issue: Backend responds with 404
+
 **Solution**: Check API endpoint paths - they should start with `/api/`
 
 ### Issue: Render backend is "sleeping" (free tier)
-**Solution**: 
+
+**Solution**:
+
 - First request will be slow (50+ seconds)
 - Consider upgrading Render plan or using another hosting service
 - Or accept the delay for free tier

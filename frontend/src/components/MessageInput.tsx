@@ -91,18 +91,23 @@ export default function MessageInput({ addStep, updateStep, setGoal, setSteps }:
                         updateStep(event.tool, "failed", event.error)
 
                     if (event.event === "awaiting_consent" || event.event === "pending_approval") {
-                        // Store task and approval_id at top level for resumption
+                        // Store task with approval_id embedded for proper resume flow
+                        const taskWithApproval = {
+                            ...event.task,
+                            approval_id: event.approval_id
+                        };
                         setSteps((prev: any[]) => 
                             prev.map(s => s.tool === event.tool ? { 
                                 ...s, 
                                 status: "awaiting_consent",
-                                task: event.task,
+                                task: taskWithApproval,
                                 approval_id: event.approval_id,
                                 result: {
-                                    task: event.task,
+                                    task: taskWithApproval,
                                     approval_id: event.approval_id,
                                     binding_message: event.binding_message,
-                                    error: "SECURITY HALT: This high-stakes action requires explicit human-in-the-loop consent. Please approve to continue."
+                                    awaiting_approval: true,
+                                    message: "SECURITY HALT: This high-stakes action requires explicit human-in-the-loop consent. Please approve on the Approvals page to continue."
                                 }
                             } : s)
                         )

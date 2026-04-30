@@ -97,13 +97,22 @@ export default function ChatBox() {
     updateStep(tool, "running");
     try {
       const token = await getAccessTokenSilently();
+      // Ensure consent_granted and approval_id are in the task params
+      const resumeTask = {
+        ...task,
+        params: {
+          ...(task.params || {}),
+          consent_granted: true,
+          ...(task.approval_id ? { approval_id: task.approval_id } : {})
+        }
+      };
       const res = await fetch(`${API_BASE_URL}/api/agent/resume-task`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ task })
+        body: JSON.stringify({ task: resumeTask })
       });
       const data = await res.json();
       if (data.status === "success" || data.result) {
